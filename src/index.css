@@ -1,0 +1,127 @@
+/* ---- Reset & base ---- */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Sarabun', sans-serif;
+}
+#root {
+  min-height: 100vh;
+}
+
+/* ---- Keyframes (ported from the design prototypes) ---- */
+@keyframes owFloat {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--fx, 12px), var(--fy, -16px));
+  }
+}
+@keyframes owTwinkle {
+  0%,
+  100% {
+    opacity: var(--t0, 0.25);
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: var(--t1, 0.9);
+    transform: scale(1.15);
+  }
+}
+@keyframes owOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes owCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---- Hover / focus states (the prototype's style-hover / style-focus) ---- */
+.ow-voice-btn:hover {
+  background: rgba(222, 170, 80, 0.12);
+}
+.ow-primary-link:hover,
+.ow-modal-read:hover {
+  filter: brightness(1.07);
+}
+.ow-daily-btn:hover {
+  border: 1px solid rgba(240, 185, 95, 0.6);
+  background: linear-gradient(180deg, rgba(58, 36, 14, 0.62), rgba(38, 23, 9, 0.56));
+  transform: translateY(-2px);
+}
+.ow-modal-close-x:hover {
+  background: rgba(222, 170, 80, 0.16);
+  color: #f0d9aa;
+}
+.ow-modal-close-btn:hover {
+  background: rgba(222, 170, 80, 0.1);
+  border-color: rgba(240, 185, 95, 0.55);
+}
+
+/* Search page */
+.ow-logo-pill:hover {
+  background: rgba(222, 170, 80, 0.12);
+}
+
+/* Full-text page */
+.ow-wordmark:hover {
+  filter: brightness(1.1);
+}
+.ow-archive-link:hover {
+  color: #ffd27a;
+}
+.ow-icon-btn:hover {
+  background: rgba(222, 170, 80, 0.16);
+}
+.ow-action-btn:hover {
+  background: rgba(222, 170, 80, 0.12);
+}
+.ow-theme-toggle:hover {
+  background: rgba(58, 36, 14, 0.85);
+}
+
+/* Login page */
+.ow-field:focus {
+  border-color: rgba(245, 180, 80, 0.8);
+}
+.ow-login-wordmark:hover {
+  filter: brightness(1.08) drop-shadow(0 4px 22px rgba(240, 160, 50, 0.4));
+}
+.ow-eye-btn:hover {
+  background: rgba(222, 170, 80, 0.12);
+}
+.ow-forgot-link:hover {
+  text-decoration: underline;
+}
+.ow-submit-btn:hover {
+  filter: brightness(1.06);
+}
+.ow-switch-btn:hover {
+  text-decoration: underline;
+}
+.ow-back-link:hover {
+  color: #e6b65c;
+}
+
+/* Placeholder colour tuned to the warm palette */
+input::placeholder {
+  color: rgba(220, 190, 140, 0.55);
+}
