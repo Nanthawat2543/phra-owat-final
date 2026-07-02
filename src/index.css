@@ -132,6 +132,11 @@ body {
   color: #e6b65c;
 }
 
+/* Facet dropdown options */
+.ow-facet-option:hover {
+  background: rgba(233, 184, 94, 0.12) !important;
+}
+
 /* Search results */
 .ow-result-card:hover {
   border-color: rgba(240, 185, 95, 0.55);
