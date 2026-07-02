@@ -6,6 +6,9 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* พื้นหลังเข้มเสมอ — กันขอบขาวโผล่ตอนลากจอเกินขอบ (overscroll/rubber-band) */
+  background: #1a0a00;
+  overscroll-behavior: none;
 }
 body {
   font-family: 'Sarabun', sans-serif;
