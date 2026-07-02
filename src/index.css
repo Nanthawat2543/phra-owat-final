@@ -132,7 +132,39 @@ body {
   color: #e6b65c;
 }
 
+/* Search results */
+.ow-result-card:hover {
+  border-color: rgba(240, 185, 95, 0.55);
+  background: linear-gradient(180deg, rgba(58, 36, 14, 0.6), rgba(38, 23, 9, 0.54));
+  transform: translateY(-1px);
+}
+
 /* Placeholder colour tuned to the warm palette */
 input::placeholder {
   color: rgba(220, 190, 140, 0.55);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  /* Home: search field + button stack vertically */
+  .ow-search-bar {
+    flex-wrap: wrap;
+    border-radius: 20px !important;
+    padding: 14px 16px !important;
+  }
+  .ow-search-bar .ow-primary-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Search page: logo on its own row above the field */
+  .ow-search-row {
+    flex-direction: column;
+    gap: 12px !important;
+  }
+
+  /* Full-text: hide the "กลับคลังพระโอวาท" label, keep the arrow */
+  .ow-archive-text {
+    display: none;
+  }
 }

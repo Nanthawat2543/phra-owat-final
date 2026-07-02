@@ -1,6 +1,7 @@
-import { useState, type CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useCallback, type CSSProperties } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import BackgroundGlow from '../components/BackgroundGlow'
+import { thaiDate, placeLabel, stripMarkdown, type Passage } from '../lib/format'
 
 /** Shimmering gold title text — the original owat.fycdth.com treatment. */
 const goldTextGradient: CSSProperties = {
@@ -16,21 +17,61 @@ const goldTextGradient: CSSProperties = {
 /** Primary amber button gradient from the original site. */
 const amberButtonGradient = 'linear-gradient(90deg, #b45309 0%, #d97706 50%, #b45309 100%)'
 
-/** Small lotus-flame flourish used in dividers. */
-function Lotus({ width = 34, height = 22, opacities = [0.95, 0.8, 0.55] }: { width?: number; height?: number; opacities?: number[] }) {
-  return (
-    <svg width={width} height={height} viewBox="0 0 34 22" fill="none" style={{ color: '#e6b65c', flexShrink: 0 }}>
-      <path d="M17 21c0-7 5-12 5-12s-2 7-5 12c-3-5-5-12-5-12s5 5 5 12z" fill="currentColor" opacity={opacities[0]} />
-      <path d="M17 21c4-3 11-3 13-9-5-1-10 2-13 9zm0 0c-4-3-11-3-13-9 5-1 10 2 13 9z" fill="currentColor" opacity={opacities[1]} />
-      {opacities[2] != null && (
-        <path d="M17 21c6 0 12-3 14-8-6-2-12 1-14 8zm0 0c-6 0-12-3-14-8 6-2 12 1 14 8z" fill="currentColor" opacity={opacities[2]} />
-      )}
-    </svg>
-  )
+const DAILY_LIMIT = 2
+
+function todayKey() {
+  const d = new Date()
+  return `owat_daily_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+
+function readOpensToday(): number {
+  try {
+    return parseInt(localStorage.getItem(todayKey()) || '0', 10) || 0
+  } catch {
+    return 0
+  }
 }
 
 export default function Home() {
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
+  const [passage, setPassage] = useState<Passage | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [opensToday, setOpensToday] = useState(0)
+
+  useEffect(() => {
+    setOpensToday(readOpensToday())
+  }, [])
+
+  const limitReached = opensToday >= DAILY_LIMIT
+
+  const goSearch = () => {
+    const q = query.trim()
+    navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+  }
+
+  const handleDraw = useCallback(async () => {
+    if (readOpensToday() >= DAILY_LIMIT || loading) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/owat?random=true', { cache: 'no-store' })
+      const data: Passage = await res.json()
+      setPassage(data)
+      setModalOpen(true)
+      const next = readOpensToday() + 1
+      try {
+        localStorage.setItem(todayKey(), String(next))
+      } catch {
+        /* ignore private-mode quota errors */
+      }
+      setOpensToday(next)
+    } catch {
+      setPassage(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [loading])
 
   return (
     <div
@@ -86,12 +127,13 @@ export default function Home() {
       </Link>
 
       <div
+        className="ow-home-inner"
         style={{
           position: 'relative',
           zIndex: 2,
           width: '100%',
           maxWidth: 1020,
-          padding: '0 32px',
+          padding: '96px 32px 48px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -100,14 +142,16 @@ export default function Home() {
         {/* Title */}
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 46 }}>
           <h1
+            className="ow-title"
             style={{
               margin: 0,
               paddingTop: 12,
               fontFamily: "'Sarabun', sans-serif",
               fontWeight: 700,
-              fontSize: 120,
+              fontSize: 'clamp(52px, 12vw, 120px)',
               lineHeight: 1.18,
               letterSpacing: '1px',
+              textAlign: 'center',
               filter: 'drop-shadow(0 6px 30px rgba(240,160,50,0.4))',
               ...goldTextGradient,
             }}
@@ -118,6 +162,7 @@ export default function Home() {
 
         {/* Search bar */}
         <div
+          className="ow-search-bar"
           style={{
             width: '100%',
             display: 'flex',
@@ -137,6 +182,14 @@ export default function Home() {
           </svg>
           <input
             type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                goSearch()
+              }
+            }}
             placeholder="ค้นหาพระโอวาท ธรรมะ หรือคำสอน..."
             style={{
               flex: 1,
@@ -150,12 +203,14 @@ export default function Home() {
               padding: '6px 0',
             }}
           />
-          <Link
-            to="/search"
+          <button
+            type="button"
+            onClick={goSearch}
             className="ow-primary-link"
             style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: 9,
               padding: '13px 28px',
               borderRadius: 999,
@@ -171,38 +226,50 @@ export default function Home() {
             }}
           >
             ค้นหา
-          </Link>
+          </button>
         </div>
 
         {/* Daily quote button */}
-        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: 26 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginTop: 26 }}>
           <button
             className="ow-daily-btn"
-            onClick={() => setModalOpen(true)}
+            onClick={handleDraw}
+            disabled={limitReached || loading}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 16,
-              padding: '26px 56px',
+              padding: '22px clamp(28px, 6vw, 56px)',
               borderRadius: 18,
-              cursor: 'pointer',
-              background: amberButtonGradient,
+              cursor: limitReached ? 'not-allowed' : 'pointer',
+              background: limitReached ? 'rgba(120,72,20,0.35)' : amberButtonGradient,
               border: '1px solid rgba(245,158,11,0.3)',
-              color: '#fff',
+              color: limitReached ? '#c9a97a' : '#fff',
               fontFamily: "'Sarabun', sans-serif",
               fontWeight: 500,
-              fontSize: 22,
+              fontSize: 'clamp(18px, 4vw, 22px)',
+              textAlign: 'center',
               transition: 'all 0.2s',
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            เปิดรับพระโอวาทชี้แนะวันนี้
+            {loading
+              ? 'กำลังอัญเชิญ...'
+              : limitReached
+                ? 'วันนี้เปิดครบแล้ว 🙏 พรุ่งนี้พบกันใหม่'
+                : 'เปิดรับพระโอวาทชี้แนะวันนี้'}
           </button>
+          {!limitReached && (
+            <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(199,154,82,0.6)' }}>
+              เปิดได้วันละ {DAILY_LIMIT} ครั้ง · วันนี้เปิดแล้ว {opensToday}/{DAILY_LIMIT}
+            </p>
+          )}
         </div>
       </div>
 
       {/* Daily-quote modal */}
-      {modalOpen && (
+      {modalOpen && passage && (
         <div
           onClick={() => setModalOpen(false)}
           style={{
@@ -212,7 +279,7 @@ export default function Home() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 24,
+            padding: 20,
             background: 'rgba(8,4,1,0.74)',
             backdropFilter: 'blur(7px)',
             animation: 'owOverlayIn 0.25s ease',
@@ -220,11 +287,14 @@ export default function Home() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
+            className="ow-modal-card"
             style={{
               position: 'relative',
               width: '100%',
               maxWidth: 560,
-              padding: '42px 46px 36px',
+              maxHeight: '88vh',
+              overflowY: 'auto',
+              padding: 'clamp(28px, 6vw, 44px) clamp(22px, 5vw, 46px) clamp(24px, 5vw, 36px)',
               borderRadius: 28,
               background: 'linear-gradient(180deg, rgba(52,32,12,0.97), rgba(31,18,7,0.97))',
               border: '1px solid rgba(222,170,80,0.42)',
@@ -257,11 +327,11 @@ export default function Home() {
               </svg>
             </button>
 
+            {/* Badge (no icon) */}
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 9,
                 padding: '7px 16px',
                 borderRadius: 999,
                 background: 'rgba(233,184,94,0.12)',
@@ -271,28 +341,27 @@ export default function Home() {
                 fontWeight: 600,
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 4V2M5 7L3.5 5.5M19 7l1.5-1.5M2 18h20M4 18a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8 18a4 4 0 0 1 8 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-              </svg>
               พระโอวาทแนะนำวันนี้
             </div>
 
-            <div style={{ fontSize: 14, color: '#b08a4c', margin: '14px 0 18px' }}>
-              วันอังคารที่ ๑ กรกฎาคม ๒๕๖๙
+            {/* Attribution: date → giver → place */}
+            <div style={{ margin: '18px 0 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {passage.date && (
+                <div style={{ fontSize: 14, color: '#b08a4c' }}>{thaiDate(passage.date)}</div>
+              )}
+              {passage.deity_th && (
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#f0c878' }}>{passage.deity_th}</div>
+              )}
+              {placeLabel(passage) && (
+                <div style={{ fontSize: 14, color: '#c79a52' }}>{placeLabel(passage)}</div>
+              )}
             </div>
 
-            <div style={{ position: 'relative', paddingTop: 6 }}>
+            {/* Quote — opening and closing quote marks */}
+            <div style={{ position: 'relative', padding: '8px 4px 0' }}>
               <span
-                style={{
-                  position: 'absolute',
-                  top: -22,
-                  left: -6,
-                  fontSize: 76,
-                  lineHeight: 1,
-                  color: 'rgba(233,184,94,0.22)',
-                  fontFamily: 'Georgia, serif',
-                }}
+                aria-hidden="true"
+                style={{ position: 'absolute', top: -26, left: -4, fontSize: 72, lineHeight: 1, color: 'rgba(233,184,94,0.22)', fontFamily: 'Georgia, serif' }}
               >
                 “
               </span>
@@ -300,26 +369,28 @@ export default function Home() {
                 style={{
                   position: 'relative',
                   margin: 0,
-                  fontSize: 27,
-                  lineHeight: 1.6,
+                  fontSize: 'clamp(20px, 5vw, 26px)',
+                  lineHeight: 1.65,
                   fontWeight: 500,
                   color: '#f5e6c4',
                   textWrap: 'pretty',
                 }}
               >
-                ความสุขที่แท้จริง มิได้อยู่ที่การมีมาก แต่อยู่ที่ใจรู้จักพอ
+                {stripMarkdown(passage.text)}
               </p>
+              <div style={{ position: 'relative', height: 28 }}>
+                <span
+                  aria-hidden="true"
+                  style={{ position: 'absolute', right: -2, bottom: -30, fontSize: 72, lineHeight: 1, color: 'rgba(233,184,94,0.22)', fontFamily: 'Georgia, serif' }}
+                >
+                  ”
+                </span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '24px 0 28px', color: '#c79a52' }}>
-              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0) 0%, rgba(199,154,82,0.6) 100%)' }} />
-              <Lotus width={26} height={17} opacities={[0.95, 0.7]} />
-              <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0.6) 0%, rgba(199,154,82,0) 100%)' }} />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 30 }}>
               <Link
-                to="/full"
+                to={`/full?id=${encodeURIComponent(passage.teaching_id)}`}
                 className="ow-modal-read"
                 style={{
                   flex: 1,
