@@ -9,3 +9,4 @@ dist-ssr
 vite.config.d.ts
 vite.config.js
 preview-dist
+.vercel

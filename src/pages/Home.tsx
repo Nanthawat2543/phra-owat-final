@@ -1,64 +1,20 @@
 import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
+import BackgroundGlow from '../components/BackgroundGlow'
 
-/** Warm decorative bokeh orbs that slowly float behind the title. */
-const FLOATS: CSSProperties[] = [
-  {
-    top: '16%',
-    right: '11%',
-    width: 130,
-    height: 130,
-    background:
-      'radial-gradient(circle, rgba(255,196,92,0.95) 0%, rgba(240,160,40,0.4) 38%, rgba(240,160,40,0) 70%)',
-    filter: 'blur(2px)',
-    ['--fx' as string]: '-10px',
-    ['--fy' as string]: '14px',
-    animation: 'owFloat 11s ease-in-out infinite',
-  },
-  {
-    top: '22%',
-    left: '11%',
-    width: 90,
-    height: 90,
-    background:
-      'radial-gradient(circle, rgba(255,190,90,0.7) 0%, rgba(220,140,30,0.25) 42%, rgba(220,140,30,0) 72%)',
-    filter: 'blur(3px)',
-    ['--fx' as string]: '14px',
-    ['--fy' as string]: '18px',
-    animation: 'owFloat 14s ease-in-out infinite',
-  },
-  {
-    bottom: '20%',
-    right: '17%',
-    width: 70,
-    height: 70,
-    background:
-      'radial-gradient(circle, rgba(255,200,100,0.55) 0%, rgba(220,150,40,0.2) 45%, rgba(220,150,40,0) 74%)',
-    filter: 'blur(2px)',
-    ['--fx' as string]: '-8px',
-    ['--fy' as string]: '-12px',
-    animation: 'owFloat 13s ease-in-out infinite',
-  },
-]
-
-/** Small twinkling sparkles scattered across the backdrop. */
-const TWINKLES: CSSProperties[] = [
-  { top: '14%', left: '60%', width: 7, height: 7, background: '#ffd27a', boxShadow: '0 0 8px 2px rgba(255,200,110,0.8)', ['--t0' as string]: '0.3', ['--t1' as string]: '1', animation: 'owTwinkle 4.5s ease-in-out infinite' },
-  { top: '47%', left: '95%', width: 5, height: 5, background: '#ffce72', boxShadow: '0 0 7px 2px rgba(255,200,110,0.7)', ['--t0' as string]: '0.25', ['--t1' as string]: '0.95', animation: 'owTwinkle 5.5s ease-in-out infinite' },
-  { bottom: '12%', left: '14%', width: 6, height: 6, background: '#ffd27a', boxShadow: '0 0 7px 2px rgba(255,200,110,0.75)', ['--t0' as string]: '0.3', ['--t1' as string]: '1', animation: 'owTwinkle 6s ease-in-out infinite' },
-  { bottom: '32%', left: '6%', width: 4, height: 4, background: '#ffce72', boxShadow: '0 0 6px 2px rgba(255,200,110,0.7)', ['--t0' as string]: '0.2', ['--t1' as string]: '0.85', animation: 'owTwinkle 5s ease-in-out infinite' },
-  { top: '8%', left: '33%', width: 4, height: 4, background: '#ffce72', boxShadow: '0 0 6px 2px rgba(255,200,110,0.65)', ['--t0' as string]: '0.2', ['--t1' as string]: '0.8', animation: 'owTwinkle 7s ease-in-out infinite' },
-  { bottom: '8%', right: '38%', width: 5, height: 5, background: '#ffd27a', boxShadow: '0 0 7px 2px rgba(255,200,110,0.7)', ['--t0' as string]: '0.25', ['--t1' as string]: '0.9', animation: 'owTwinkle 6.5s ease-in-out infinite' },
-  { bottom: '24%', right: '4%', width: 4, height: 4, background: '#ffce72', boxShadow: '0 0 6px 2px rgba(255,200,110,0.65)', ['--t0' as string]: '0.2', ['--t1' as string]: '0.85', animation: 'owTwinkle 5.8s ease-in-out infinite' },
-]
-
+/** Shimmering gold title text — the original owat.fycdth.com treatment. */
 const goldTextGradient: CSSProperties = {
-  background: 'linear-gradient(176deg, #fff0cc 4%, #ffce6b 32%, #f5a92f 64%, #d4801c 100%)',
+  background: 'linear-gradient(90deg, #ca8a04, #fde047, #ca8a04)',
+  backgroundSize: '200% 100%',
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
   color: 'transparent',
+  animation: 'owShimmer 3s infinite',
 }
+
+/** Primary amber button gradient from the original site. */
+const amberButtonGradient = 'linear-gradient(90deg, #b45309 0%, #d97706 50%, #b45309 100%)'
 
 /** Small lotus-flame flourish used in dividers. */
 function Lotus({ width = 34, height = 22, opacities = [0.95, 0.8, 0.55] }: { width?: number; height?: number; opacities?: number[] }) {
@@ -83,23 +39,51 @@ export default function Home() {
         width: '100%',
         minHeight: '100vh',
         overflow: 'hidden',
-        background:
-          'radial-gradient(120% 95% at 50% 42%, #34200c 0%, #241405 34%, #160c03 62%, #0b0602 100%)',
+        background: 'linear-gradient(180deg, #1a0a00 0%, #2d1810 30%, #1a0a00 100%)',
         fontFamily: "'Sarabun', sans-serif",
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      {/* Decorative backdrop */}
-      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-        {FLOATS.map((s, i) => (
-          <div key={`f${i}`} style={{ position: 'absolute', borderRadius: '50%', ...s }} />
-        ))}
-        {TWINKLES.map((s, i) => (
-          <div key={`t${i}`} style={{ position: 'absolute', borderRadius: '50%', ...s }} />
-        ))}
-      </div>
+      {/* Animated amber glow backdrop (canvas, from the original site) */}
+      <BackgroundGlow />
+
+      {/* Login button — top right */}
+      <Link
+        to="/login"
+        className="ow-login-btn"
+        style={{
+          position: 'absolute',
+          top: 18,
+          right: 20,
+          zIndex: 30,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          minHeight: 40,
+          padding: '8px 16px',
+          borderRadius: 999,
+          textDecoration: 'none',
+          background: 'rgba(180,83,9,0.4)',
+          border: '1px solid rgba(245,158,11,0.4)',
+          color: '#fef3c7',
+          fontFamily: "'Sarabun', sans-serif",
+          fontSize: 14,
+          fontWeight: 500,
+          transition: 'all 0.2s',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+          />
+        </svg>
+        เข้าสู่ระบบ
+      </Link>
 
       <div
         style={{
@@ -214,21 +198,21 @@ export default function Home() {
               alignItems: 'center',
               gap: 9,
               padding: '13px 28px',
-              border: 'none',
               borderRadius: 999,
               cursor: 'pointer',
               textDecoration: 'none',
-              background: 'linear-gradient(160deg, #ffd070 0%, #f2a32e 52%, #d4811c 100%)',
-              color: '#341c06',
+              background: amberButtonGradient,
+              color: '#fff',
               fontFamily: "'Sarabun', sans-serif",
               fontWeight: 600,
               fontSize: 19,
-              boxShadow: '0 6px 22px rgba(232,160,55,0.42), 0 0 0 1px rgba(255,225,170,0.35) inset',
+              border: '1px solid rgba(245,158,11,0.3)',
+              boxShadow: '0 6px 22px rgba(217,119,6,0.3)',
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3l1.6 5.1L19 9.6l-4.4 2.2L12 17l-2.6-5.2L5 9.6l5.4-1.5L12 3z" fill="#3a1f06" />
-              <path d="M19 4l0.6 1.9L21 6.4l-1.4 0.6L19 9l-0.6-2L17 6.4l1.4-0.5L19 4z" fill="#3a1f06" />
+              <path d="M12 3l1.6 5.1L19 9.6l-4.4 2.2L12 17l-2.6-5.2L5 9.6l5.4-1.5L12 3z" fill="#fff" />
+              <path d="M19 4l0.6 1.9L21 6.4l-1.4 0.6L19 9l-0.6-2L17 6.4l1.4-0.5L19 4z" fill="#fff" />
             </svg>
             ค้นหา
           </Link>
@@ -247,16 +231,16 @@ export default function Home() {
               padding: '26px 56px',
               borderRadius: 18,
               cursor: 'pointer',
-              background: 'linear-gradient(180deg, rgba(44,27,10,0.5), rgba(28,17,6,0.46))',
-              border: '1px solid rgba(200,150,70,0.3)',
-              color: '#ecd6a8',
+              background: amberButtonGradient,
+              border: '1px solid rgba(245,158,11,0.3)',
+              color: '#fff',
               fontFamily: "'Sarabun', sans-serif",
               fontWeight: 500,
               fontSize: 22,
               transition: 'all 0.2s',
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: '#e9b85e' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: '#fff' }}>
               <path d="M12 4V2M5 7L3.5 5.5M19 7l1.5-1.5M2 18h20M4 18a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M8 18a4 4 0 0 1 8 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
             </svg>

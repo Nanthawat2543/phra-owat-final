@@ -53,6 +53,14 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+@keyframes owShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
 
 /* ---- Hover / focus states (the prototype's style-hover / style-focus) ---- */
 .ow-voice-btn:hover {
@@ -63,9 +71,12 @@ body {
   filter: brightness(1.07);
 }
 .ow-daily-btn:hover {
-  border: 1px solid rgba(240, 185, 95, 0.6);
-  background: linear-gradient(180deg, rgba(58, 36, 14, 0.62), rgba(38, 23, 9, 0.56));
+  filter: brightness(1.12);
+  box-shadow: 0 6px 24px rgba(217, 119, 6, 0.35);
   transform: translateY(-2px);
+}
+.ow-login-btn:hover {
+  background: rgba(217, 119, 6, 0.5);
 }
 .ow-modal-close-x:hover {
   background: rgba(222, 170, 80, 0.16);
