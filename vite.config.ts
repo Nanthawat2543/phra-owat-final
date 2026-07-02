@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin, type Connect } from 'vite'
+import { defineConfig, loadEnv, type Plugin, type Connect } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Serves the /api serverless functions during `vite dev` / `vite preview`, so
@@ -8,6 +8,9 @@ function apiDevServer(): Plugin {
   const routes: Record<string, string> = {
     '/api/owat': './api/owat.js',
     '/api/search': './api/search.js',
+    '/api/auth/login': './api/auth/login.js',
+    '/api/auth/me': './api/auth/me.js',
+    '/api/auth/logout': './api/auth/logout.js',
   }
 
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {
@@ -50,6 +53,13 @@ function apiDevServer(): Plugin {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [apiDevServer(), react()],
+export default defineConfig(({ mode }) => {
+  // Expose auth env vars from .env to the in-process /api handlers during dev.
+  const env = loadEnv(mode, process.cwd(), '')
+  for (const key of ['ADMIN_EMAIL', 'ADMIN_PASSWORD_SHA256', 'AUTH_SECRET']) {
+    if (env[key] && !process.env[key]) process.env[key] = env[key]
+  }
+  return {
+    plugins: [apiDevServer(), react()],
+  }
 })

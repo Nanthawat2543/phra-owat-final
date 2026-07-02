@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../lib/auth'
 
 const fieldStyle: CSSProperties = {
   width: '100%',
@@ -20,10 +21,36 @@ const labelStyle: CSSProperties = {
 }
 
 export default function Login() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [showPw, setShowPw] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const isLogin = mode === 'login'
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+    if (!isLogin) {
+      setMessage({ text: 'ยังไม่เปิดรับสมัครสมาชิกในเวอร์ชันนี้ กรุณาติดต่อผู้ดูแลระบบ', error: true })
+      return
+    }
+    if (!email.trim() || !password) {
+      setMessage({ text: 'กรุณากรอกอีเมลและรหัสผ่าน', error: true })
+      return
+    }
+    setSubmitting(true)
+    const result = await login(email.trim(), password)
+    setSubmitting(false)
+    if (result.error) {
+      setMessage({ text: result.error, error: true })
+      return
+    }
+    navigate('/')
+  }
 
   return (
     <div
@@ -113,7 +140,7 @@ export default function Login() {
             backdropFilter: 'blur(10px)',
           }}
         >
-          <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }} onSubmit={(e) => e.preventDefault()}>
+          <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }} onSubmit={handleSubmit}>
             {!isLogin && (
               <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={labelStyle}>ชื่อ-นามสกุล</span>
@@ -123,7 +150,15 @@ export default function Login() {
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={labelStyle}>อีเมล</span>
-              <input type="email" placeholder="you@example.com" className="ow-field" style={fieldStyle} />
+              <input
+                type="email"
+                placeholder="you@example.com"
+                className="ow-field"
+                style={fieldStyle}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </label>
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -134,6 +169,9 @@ export default function Login() {
                   placeholder="••••••••"
                   className="ow-field"
                   style={{ ...fieldStyle, padding: '13px 48px 13px 16px' }}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -182,16 +220,35 @@ export default function Login() {
               </div>
             )}
 
+            {message && (
+              <p
+                role="alert"
+                style={{
+                  margin: '-2px 0 0',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: message.error ? 'rgba(190,60,40,0.16)' : 'rgba(233,184,94,0.14)',
+                  border: `1px solid ${message.error ? 'rgba(230,110,80,0.4)' : 'rgba(222,170,80,0.35)'}`,
+                  color: message.error ? '#f0a08a' : '#f0c878',
+                }}
+              >
+                {message.text}
+              </p>
+            )}
+
             <button
               type="submit"
               className="ow-submit-btn"
+              disabled={submitting}
               style={{
                 marginTop: 8,
                 width: '100%',
                 padding: 15,
                 border: 'none',
                 borderRadius: 14,
-                cursor: 'pointer',
+                cursor: submitting ? 'wait' : 'pointer',
+                opacity: submitting ? 0.7 : 1,
                 background: 'linear-gradient(160deg, #ffd070 0%, #f2a32e 52%, #d4811c 100%)',
                 color: '#341c06',
                 fontFamily: "'Sarabun', sans-serif",
@@ -200,7 +257,7 @@ export default function Login() {
                 boxShadow: '0 8px 24px rgba(232,160,55,0.4), 0 0 0 1px rgba(255,225,170,0.35) inset',
               }}
             >
-              {isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}
+              {submitting ? 'กำลังเข้าสู่ระบบ...' : isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}
             </button>
           </form>
 
@@ -214,7 +271,10 @@ export default function Login() {
             <span>{isLogin ? 'ยังไม่มีบัญชี?' : 'มีบัญชีอยู่แล้ว?'}</span>
             <button
               type="button"
-              onClick={() => setMode(isLogin ? 'signup' : 'login')}
+              onClick={() => {
+                setMode(isLogin ? 'signup' : 'login')
+                setMessage(null)
+              }}
               className="ow-switch-btn"
               style={{
                 border: 'none',

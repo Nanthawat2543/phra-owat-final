@@ -8,8 +8,6 @@ export default function FullText() {
 
   const [scale, setScale] = useState(100)
   const [light, setLight] = useState(false)
-  const [liked, setLiked] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [teaching, setTeaching] = useState<Teaching | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -32,8 +30,6 @@ export default function FullText() {
   const percentLabel = `${scale}%`
   const bodyFont = `${((20 * scale) / 100).toFixed(1)}px`
 
-  const likeColor = liked ? '#e8884a' : light ? '#9a7330' : '#c79a52'
-  const saveColor = saved ? '#e9b85e' : light ? '#9a7330' : '#c79a52'
   const pageBg = light
     ? 'radial-gradient(120% 90% at 50% 0%, #2a1808 0%, #1a0f04 60%, #0e0702 100%)'
     : 'radial-gradient(120% 90% at 50% 0%, #2c1a0a 0%, #190e04 58%, #0c0602 100%)'
@@ -42,7 +38,6 @@ export default function FullText() {
     ? 'linear-gradient(180deg, #f6ecd6, #efe1c4)'
     : 'linear-gradient(180deg, rgba(52,32,12,0.62), rgba(33,20,8,0.58))'
   const sheetBorder = light ? 'rgba(190,150,90,0.5)' : 'rgba(222,170,80,0.3)'
-  const ruleColor = light ? 'rgba(150,110,55,0.3)' : 'rgba(199,154,82,0.22)'
   const headingColor = light ? '#2e2008' : '#f7ead0'
   const textColor = light ? '#4a3618' : '#dcc296'
 
@@ -181,32 +176,8 @@ export default function FullText() {
 
           {!loading && !error && teaching && (
             <>
-              {/* Action row */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, paddingBottom: 24, marginBottom: 8, borderBottom: `1px solid ${ruleColor}` }}>
-                <button
-                  className="ow-action-btn"
-                  onClick={() => setLiked((v) => !v)}
-                  aria-label="ถูกใจ"
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: likeColor, fontFamily: "'Sarabun', sans-serif", fontSize: 14 }}
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'}>
-                    <path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                <button
-                  className="ow-action-btn"
-                  onClick={() => setSaved((v) => !v)}
-                  aria-label="บันทึก"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 38, border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: saveColor }}
-                >
-                  <svg width="21" height="21" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'}>
-                    <path d="M6 4h12v16l-6-4-6 4V4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-
               {/* Header: giver / place / date */}
-              <div style={{ textAlign: 'center', marginBottom: 8 }}>
+              <div style={{ textAlign: 'center', marginBottom: 30 }}>
                 <h1 style={{ margin: '20px 0 14px', fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 700, lineHeight: 1.4, color: headingColor }}>
                   {teaching.deity_th || 'พระโอวาท'}
                 </h1>
@@ -216,15 +187,6 @@ export default function FullText() {
                 {teaching.date && (
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: light ? '#6b4f22' : '#b08a4c' }}>{thaiDate(teaching.date)}</p>
                 )}
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, margin: '30px auto 30px', maxWidth: 420, color: '#c79a52' }}>
-                  <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0) 0%, rgba(199,154,82,0.7) 100%)' }} />
-                  <svg width="30" height="20" viewBox="0 0 34 22" fill="none" style={{ color: '#e6b65c', flexShrink: 0 }}>
-                    <path d="M17 21c0-7 5-12 5-12s-2 7-5 12c-3-5-5-12-5-12s5 5 5 12z" fill="currentColor" opacity="0.95" />
-                    <path d="M17 21c4-3 11-3 13-9-5-1-10 2-13 9zm0 0c-4-3-11-3-13-9 5-1 10 2 13 9z" fill="currentColor" opacity="0.7" />
-                  </svg>
-                  <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0.7) 0%, rgba(199,154,82,0) 100%)' }} />
-                </div>
               </div>
 
               {/* Body */}

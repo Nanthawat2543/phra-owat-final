@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BackgroundGlow from '../components/BackgroundGlow'
 import { thaiDate, placeLabel, stripMarkdown, type Passage } from '../lib/format'
+import { useAuth } from '../lib/auth'
 
 /** Shimmering gold title text — the original owat.fycdth.com treatment. */
 const goldTextGradient: CSSProperties = {
@@ -34,6 +35,7 @@ function readOpensToday(): number {
 
 export default function Home() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [query, setQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [passage, setPassage] = useState<Passage | null>(null)
@@ -90,41 +92,88 @@ export default function Home() {
       {/* Animated amber glow backdrop (canvas, from the original site) */}
       <BackgroundGlow />
 
-      {/* Login button — top right */}
-      <Link
-        to="/login"
-        className="ow-login-btn"
-        style={{
-          position: 'absolute',
-          top: 18,
-          right: 20,
-          zIndex: 30,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          minHeight: 40,
-          padding: '8px 16px',
-          borderRadius: 999,
-          textDecoration: 'none',
-          background: 'rgba(180,83,9,0.4)',
-          border: '1px solid rgba(245,158,11,0.4)',
-          color: '#fef3c7',
-          fontFamily: "'Sarabun', sans-serif",
-          fontSize: 14,
-          fontWeight: 500,
-          transition: 'all 0.2s',
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-          />
-        </svg>
-        เข้าสู่ระบบ
-      </Link>
+      {/* Login / user — top right */}
+      <div style={{ position: 'absolute', top: 18, right: 20, zIndex: 30, display: 'flex', alignItems: 'center', gap: 10 }}>
+        {user ? (
+          <>
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                minHeight: 40,
+                padding: '8px 16px',
+                borderRadius: 999,
+                background: 'rgba(40,24,8,0.55)',
+                border: '1px solid rgba(222,170,80,0.35)',
+                color: '#f0c878',
+                fontFamily: "'Sarabun', sans-serif",
+                fontSize: 14,
+                fontWeight: 600,
+                maxWidth: 220,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {user.name || user.email}
+            </span>
+            <button
+              onClick={logout}
+              className="ow-login-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                minHeight: 40,
+                padding: '8px 16px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                background: 'rgba(180,83,9,0.4)',
+                border: '1px solid rgba(245,158,11,0.4)',
+                color: '#fef3c7',
+                fontFamily: "'Sarabun', sans-serif",
+                fontSize: 14,
+                fontWeight: 500,
+                transition: 'all 0.2s',
+              }}
+            >
+              ออกจากระบบ
+            </button>
+          </>
+        ) : (
+          <Link
+            to="/login"
+            className="ow-login-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              minHeight: 40,
+              padding: '8px 16px',
+              borderRadius: 999,
+              textDecoration: 'none',
+              background: 'rgba(180,83,9,0.4)',
+              border: '1px solid rgba(245,158,11,0.4)',
+              color: '#fef3c7',
+              fontFamily: "'Sarabun', sans-serif",
+              fontSize: 14,
+              fontWeight: 500,
+              transition: 'all 0.2s',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+              />
+            </svg>
+            เข้าสู่ระบบ
+          </Link>
+        )}
+      </div>
 
       <div
         className="ow-home-inner"
