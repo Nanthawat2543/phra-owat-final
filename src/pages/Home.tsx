@@ -98,7 +98,7 @@ export default function Home() {
         }}
       >
         {/* Title */}
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 46 }}>
           <h1
             style={{
               margin: 0,
@@ -114,25 +114,6 @@ export default function Home() {
           >
             พระโอวาท
           </h1>
-        </div>
-
-        {/* Lotus divider */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 14,
-            margin: '18px 0 46px',
-            width: 540,
-            color: '#c79a52',
-          }}
-        >
-          <span style={{ fontSize: 13, opacity: 0.85 }}>✦</span>
-          <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0) 0%, rgba(199,154,82,0.75) 100%)' }} />
-          <Lotus />
-          <span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(199,154,82,0.75) 0%, rgba(199,154,82,0) 100%)' }} />
-          <span style={{ fontSize: 13, opacity: 0.85 }}>✦</span>
         </div>
 
         {/* Search bar */}
