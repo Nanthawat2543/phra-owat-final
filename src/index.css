@@ -140,6 +140,15 @@ body {
   background: rgba(233, 184, 94, 0.12) !important;
 }
 
+/* User avatar menu */
+.ow-avatar-btn:hover {
+  transform: scale(1.06);
+}
+.ow-menu-item:hover {
+  background: rgba(233, 184, 94, 0.12);
+  color: #f5d9a0;
+}
+
 /* Search results */
 .ow-result-card:hover {
   border-color: rgba(240, 185, 95, 0.55);
