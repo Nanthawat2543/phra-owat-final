@@ -47,7 +47,9 @@ export default function Home() {
     setOpensToday(readOpensToday())
   }, [])
 
-  const limitReached = opensToday >= DAILY_LIMIT
+  // แอดมินเปิดได้ไม่จำกัด (ข้ามลิมิตรายวัน)
+  const isAdmin = user?.role === 'admin'
+  const limitReached = !isAdmin && opensToday >= DAILY_LIMIT
 
   const goSearch = () => {
     const q = query.trim()
@@ -55,26 +57,28 @@ export default function Home() {
   }
 
   const handleDraw = useCallback(async () => {
-    if (readOpensToday() >= DAILY_LIMIT || loading) return
+    if ((!isAdmin && readOpensToday() >= DAILY_LIMIT) || loading) return
     setLoading(true)
     try {
       const res = await fetch('/api/owat?random=true', { cache: 'no-store' })
       const data: Passage = await res.json()
       setPassage(data)
       setModalOpen(true)
-      const next = readOpensToday() + 1
-      try {
-        localStorage.setItem(todayKey(), String(next))
-      } catch {
-        /* ignore private-mode quota errors */
+      if (!isAdmin) {
+        const next = readOpensToday() + 1
+        try {
+          localStorage.setItem(todayKey(), String(next))
+        } catch {
+          /* ignore private-mode quota errors */
+        }
+        setOpensToday(next)
       }
-      setOpensToday(next)
     } catch {
       setPassage(null)
     } finally {
       setLoading(false)
     }
-  }, [loading])
+  }, [loading, isAdmin])
 
   return (
     <div
@@ -232,10 +236,16 @@ export default function Home() {
                 ? 'วันนี้เปิดครบแล้ว 🙏 พรุ่งนี้พบกันใหม่'
                 : 'เปิดรับพระโอวาทชี้แนะวันนี้'}
           </button>
-          {!limitReached && (
-            <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(199,154,82,0.6)' }}>
-              เปิดได้วันละ {DAILY_LIMIT} ครั้ง · วันนี้เปิดแล้ว {opensToday}/{DAILY_LIMIT}
+          {isAdmin ? (
+            <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(240,200,120,0.75)' }}>
+              ผู้ดูแลระบบ · เปิดได้ไม่จำกัด
             </p>
+          ) : (
+            !limitReached && (
+              <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(199,154,82,0.6)' }}>
+                เปิดได้วันละ {DAILY_LIMIT} ครั้ง · วันนี้เปิดแล้ว {opensToday}/{DAILY_LIMIT}
+              </p>
+            )
           )}
         </div>
       </div>
