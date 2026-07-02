@@ -150,27 +150,6 @@ export default function Home() {
               padding: '6px 0',
             }}
           />
-          <button
-            className="ow-voice-btn"
-            aria-label="ค้นหาด้วยเสียง"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 44,
-              height: 44,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              color: '#d8a657',
-              borderRadius: '50%',
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
-              <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
           <Link
             to="/search"
             className="ow-primary-link"
@@ -191,10 +170,6 @@ export default function Home() {
               boxShadow: '0 6px 22px rgba(217,119,6,0.3)',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3l1.6 5.1L19 9.6l-4.4 2.2L12 17l-2.6-5.2L5 9.6l5.4-1.5L12 3z" fill="#fff" />
-              <path d="M19 4l0.6 1.9L21 6.4l-1.4 0.6L19 9l-0.6-2L17 6.4l1.4-0.5L19 4z" fill="#fff" />
-            </svg>
             ค้นหา
           </Link>
         </div>
@@ -221,10 +196,6 @@ export default function Home() {
               transition: 'all 0.2s',
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style={{ color: '#fff' }}>
-              <path d="M12 4V2M5 7L3.5 5.5M19 7l1.5-1.5M2 18h20M4 18a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M8 18a4 4 0 0 1 8 0" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-            </svg>
             เปิดรับพระโอวาทชี้แนะวันนี้
           </button>
         </div>
