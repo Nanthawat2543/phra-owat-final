@@ -178,11 +178,11 @@ export default function FullText() {
             <>
               {/* Header: giver / place / date */}
               <div style={{ textAlign: 'center', marginBottom: 30 }}>
-                <h1 style={{ margin: '20px 0 14px', fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 700, lineHeight: 1.4, color: headingColor }}>
+                <h1 style={{ margin: '20px 0 14px', fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 700, lineHeight: 1.4, color: headingColor, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   {teaching.deity_th || 'พระโอวาท'}
                 </h1>
                 {placeLabel(teaching) && (
-                  <p style={{ margin: '0 0 6px', fontSize: 16, color: light ? '#6b4f22' : '#c79a52' }}>{placeLabel(teaching)}</p>
+                  <p style={{ margin: '0 0 6px', fontSize: 16, color: light ? '#6b4f22' : '#c79a52', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{placeLabel(teaching)}</p>
                 )}
                 {teaching.date && (
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: light ? '#6b4f22' : '#b08a4c' }}>{thaiDate(teaching.date)}</p>
@@ -194,7 +194,18 @@ export default function FullText() {
                 {paragraphs.map((para, i) => (
                   <p
                     key={i}
-                    style={{ margin: '0 0 18px', fontSize: '1.04em', lineHeight: 1.95, fontWeight: 400, color: textColor, textIndent: '2em', textWrap: 'pretty' }}
+                    style={{
+                      margin: '0 0 18px',
+                      fontSize: '1.04em',
+                      lineHeight: 1.95,
+                      fontWeight: 400,
+                      color: textColor,
+                      textIndent: '2em',
+                      textWrap: 'pretty',
+                      // ตัดคำไทย/สตริงยาวไม่มีเว้นวรรค กันล้นกรอบบนจอแคบ
+                      overflowWrap: 'anywhere',
+                      wordBreak: 'break-word',
+                    }}
                   >
                     {para}
                   </p>
