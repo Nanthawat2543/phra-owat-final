@@ -309,41 +309,11 @@ export default function Home() {
               </svg>
             </button>
 
-            {/* Badge (no icon) */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '7px 16px',
-                borderRadius: 999,
-                background: 'rgba(233,184,94,0.12)',
-                border: '1px solid rgba(222,170,80,0.32)',
-                color: '#f0c878',
-                fontSize: 14,
-                fontWeight: 600,
-              }}
-            >
-              พระโอวาทแนะนำวันนี้
-            </div>
-
-            {/* Attribution: date → giver → place */}
-            <div style={{ margin: '18px 0 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {passage.date && (
-                <div style={{ fontSize: 14, color: '#b08a4c' }}>{thaiDate(passage.date)}</div>
-              )}
-              {passage.deity_th && (
-                <div style={{ fontSize: 17, fontWeight: 700, color: '#f0c878' }}>{passage.deity_th}</div>
-              )}
-              {placeLabel(passage) && (
-                <div style={{ fontSize: 14, color: '#c79a52' }}>{placeLabel(passage)}</div>
-              )}
-            </div>
-
-            {/* Quote — opening and closing quote marks */}
-            <div style={{ position: 'relative', padding: '8px 4px 0' }}>
+            {/* ① Quote — opening and closing quote marks */}
+            <div style={{ position: 'relative', padding: '26px 4px 0' }}>
               <span
                 aria-hidden="true"
-                style={{ position: 'absolute', top: -26, left: -4, fontSize: 72, lineHeight: 1, color: 'rgba(233,184,94,0.22)', fontFamily: 'Georgia, serif' }}
+                style={{ position: 'absolute', top: -8, left: -4, fontSize: 72, lineHeight: 1, color: 'rgba(233,184,94,0.22)', fontFamily: 'Georgia, serif' }}
               >
                 “
               </span>
@@ -370,7 +340,21 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 30 }}>
+            {/* ② พระนาม → ③ สถานที่ → ④ วันที่ */}
+            <div style={{ margin: '14px 0 4px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {passage.deity_th && (
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#f0c878' }}>{passage.deity_th}</div>
+              )}
+              {placeLabel(passage) && (
+                <div style={{ fontSize: 14, color: '#c79a52' }}>{placeLabel(passage)}</div>
+              )}
+              {passage.date && (
+                <div style={{ fontSize: 14, color: '#b08a4c' }}>{thaiDate(passage.date)}</div>
+              )}
+            </div>
+
+            {/* ⑤ ปุ่มอ่านพระโอวาท (ไม่มีลูกศร) */}
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: 26 }}>
               <Link
                 to={`/full?id=${encodeURIComponent(passage.teaching_id)}`}
                 className="ow-modal-read"
@@ -379,7 +363,6 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 9,
                   padding: 15,
                   borderRadius: 14,
                   textDecoration: 'none',
@@ -392,28 +375,8 @@ export default function Home() {
                   boxShadow: '0 8px 24px rgba(232,160,55,0.4), 0 0 0 1px rgba(255,225,170,0.35) inset',
                 }}
               >
-                อ่านพระโอวาทต้นฉบับ
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                อ่านพระโอวาท
               </Link>
-              <button
-                className="ow-modal-close-btn"
-                onClick={() => setModalOpen(false)}
-                style={{
-                  padding: '15px 26px',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  border: '1px solid rgba(200,150,70,0.34)',
-                  color: '#d9bd8a',
-                  fontFamily: "'Sarabun', sans-serif",
-                  fontWeight: 600,
-                  fontSize: 17,
-                }}
-              >
-                ปิด
-              </button>
             </div>
           </div>
         </div>
