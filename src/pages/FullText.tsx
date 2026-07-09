@@ -89,7 +89,7 @@ export default function FullText() {
           backdropFilter: 'blur(8px)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+        <div className="ow-full-left" style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           <Link
             to="/"
             className="ow-wordmark"
@@ -110,7 +110,7 @@ export default function FullText() {
           >
             พระโอวาท
           </Link>
-          <span style={{ width: 1, height: 22, background: 'rgba(214,160,70,0.3)', flexShrink: 0 }} />
+          <span className="ow-full-divider" style={{ width: 1, height: 22, background: 'rgba(214,160,70,0.3)', flexShrink: 0 }} />
           <button
             onClick={goBackToSearch}
             className="ow-archive-link"
@@ -122,7 +122,7 @@ export default function FullText() {
             <span className="ow-archive-text">กลับหน้าค้นหา</span>
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div className="ow-full-right" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <div
             style={{
               display: 'flex',

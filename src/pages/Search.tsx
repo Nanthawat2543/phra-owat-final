@@ -367,7 +367,7 @@ export default function Search() {
               </span>
             </Link>
 
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="ow-search-mid" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div
                 style={{
                   display: 'flex',
@@ -442,7 +442,7 @@ export default function Search() {
             </div>
 
             {/* ปุ่มผู้ใช้/เข้าสู่ระบบ — มีทุกหน้า (Bug #7) */}
-            <div style={{ flexShrink: 0 }}>
+            <div className="ow-search-user" style={{ flexShrink: 0 }}>
               <UserMenu user={user} onLogout={logout} />
             </div>
           </div>

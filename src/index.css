@@ -162,7 +162,7 @@ input::placeholder {
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
+@media (max-width: 720px) {
   /* Home: search field + button stack vertically */
   .ow-search-bar {
     flex-wrap: wrap;
@@ -174,13 +174,39 @@ input::placeholder {
     justify-content: center;
   }
 
-  /* Search page: logo on its own row above the field */
+  /* Search page: แถวแรก = โลโก้(ซ้าย) + ปุ่มผู้ใช้(ขวา),
+     ช่องค้นหา + ชิปกรอง ห่อลงมาเต็มความกว้างบรรทัดถัดไป */
   .ow-search-row {
-    flex-direction: column;
-    gap: 12px !important;
+    flex-wrap: wrap;
+    align-items: center !important;
+  }
+  .ow-search-row .ow-logo-pill {
+    order: 1;
+  }
+  .ow-search-row .ow-search-user {
+    order: 2;
+    margin-left: auto;
+  }
+  .ow-search-row .ow-search-mid {
+    order: 3;
+    /* !important — ทับ inline style flex:1 (flex-basis:0%) ของ component */
+    flex-basis: 100% !important;
   }
 
-  /* Full-text: hide the "กลับคลังพระโอวาท" label, keep the arrow */
+  /* Full-text: header ห่อได้ — แถวแรก = โลโก้ + ปุ่มกลับ,
+     แถวสอง = ตัวปรับขนาดอักษร + ปุ่มผู้ใช้ ชิดขวา (เลิกเบียดทับกัน) */
+  .ow-full-head {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .ow-full-right {
+    margin-left: auto;
+  }
+  .ow-full-divider {
+    display: none;
+  }
+
+  /* Full-text: hide the back label, keep the arrow */
   .ow-archive-text {
     display: none;
   }
