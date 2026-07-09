@@ -19,7 +19,8 @@ const goldTextGradient: CSSProperties = {
 /** Primary amber button gradient from the original site. */
 const amberButtonGradient = 'linear-gradient(90deg, #b45309 0%, #d97706 50%, #b45309 100%)'
 
-const DAILY_LIMIT = 2
+// จำกัดวันละ 1 ครั้ง ทุกคนรวม admin (มติประชุม Bug #8)
+const DAILY_LIMIT = 1
 
 function todayKey() {
   const d = new Date()
@@ -47,9 +48,7 @@ export default function Home() {
     setOpensToday(readOpensToday())
   }, [])
 
-  // แอดมินเปิดได้ไม่จำกัด (ข้ามลิมิตรายวัน)
-  const isAdmin = user?.role === 'admin'
-  const limitReached = !isAdmin && opensToday >= DAILY_LIMIT
+  const limitReached = opensToday >= DAILY_LIMIT
 
   const goSearch = () => {
     const q = query.trim()
@@ -57,28 +56,26 @@ export default function Home() {
   }
 
   const handleDraw = useCallback(async () => {
-    if ((!isAdmin && readOpensToday() >= DAILY_LIMIT) || loading) return
+    if (readOpensToday() >= DAILY_LIMIT || loading) return
     setLoading(true)
     try {
       const res = await fetch('/api/owat?random=true', { cache: 'no-store' })
       const data: Passage = await res.json()
       setPassage(data)
       setModalOpen(true)
-      if (!isAdmin) {
-        const next = readOpensToday() + 1
-        try {
-          localStorage.setItem(todayKey(), String(next))
-        } catch {
-          /* ignore private-mode quota errors */
-        }
-        setOpensToday(next)
+      const next = readOpensToday() + 1
+      try {
+        localStorage.setItem(todayKey(), String(next))
+      } catch {
+        /* ignore private-mode quota errors */
       }
+      setOpensToday(next)
     } catch {
       setPassage(null)
     } finally {
       setLoading(false)
     }
-  }, [loading, isAdmin])
+  }, [loading])
 
   return (
     <div
@@ -233,20 +230,9 @@ export default function Home() {
             {loading
               ? 'กำลังอัญเชิญ...'
               : limitReached
-                ? 'วันนี้เปิดครบแล้ว 🙏 พรุ่งนี้พบกันใหม่'
+                ? 'เปิดรับฉบับใหม่ในวันพรุ่งนี้'
                 : 'เปิดรับพระโอวาทชี้แนะวันนี้'}
           </button>
-          {isAdmin ? (
-            <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(240,200,120,0.75)' }}>
-              ผู้ดูแลระบบ · เปิดได้ไม่จำกัด
-            </p>
-          ) : (
-            !limitReached && (
-              <p style={{ margin: '12px 0 0', fontSize: 13, color: 'rgba(199,154,82,0.6)' }}>
-                เปิดได้วันละ {DAILY_LIMIT} ครั้ง · วันนี้เปิดแล้ว {opensToday}/{DAILY_LIMIT}
-              </p>
-            )
-          )}
         </div>
       </div>
 
