@@ -17,7 +17,7 @@
 ✅ ยืนยันบนไซต์: ค้น "เมตตา" → matchedTerms มี "รัก","ความรัก"
 → `api/_lib/passages.js` (ตัด `keywordMap`/`expandQueryTerms`) + ไฮไลต์ใน `src/pages/Search.tsx`
 
-### 5. ข้อมูลสถานที่แสดงผิด (สำคัญ 3)
+### 5. ข้อมูลสถานที่แสดงผิด (สำคัญ 3) — ✅ เสร็จ (9 ก.ค. 2569)
 ✅ ต้นเหตุ = ข้อมูลสกปรกในคลัง: temple/province มีประโยคเนื้อหา (15), วันที่ (52), เวลา "09.55/–10.16 น." (18)
 → ทำความสะอาดตอน export (`scripts/export-data.mjs`) + กันใน `placeLabel()` (`src/lib/format.ts`)
 

@@ -28,12 +28,54 @@ export function getCurated() {
   return _curated
 }
 
+// ── ล้างข้อมูลสถานที่สกปรก (Bug #5) ──
+// ข้อมูลในคลังบางฉบับมีค่า temple/province ปนเปื้อน: เวลา ("09.55", "– 10.16 น."),
+// วันที่ ("วันเสาร์ที่ 22 เมษายน พ.ศ. 2549", "บุรีรัมย์วันอาทิตย์ที่"),
+// หรือประโยคเนื้อหา ("ไฟกล่องมหึมาดับได้ด้วยอะไร")
+
+const THAI_MONTHS =
+  /มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม/
+// คีย์เวิร์ดที่บ่งว่าเป็นชื่อสถานธรรมจริง (ยอมให้ยาวได้)
+const TEMPLE_HINT = /ฝอเอวี้ยน|เอวี้ยน|พุทธสถาน|ธรรมสถาน|สถานธรรม|อาราม|ตำหนัก|วัด|ศูนย์/
+
+function cleanPlaceValue(raw, { isProvince = false } = {}) {
+  if (!raw) return null
+  let s = String(raw).trim()
+
+  // ตัดท่อนวันที่ที่ติดท้ายมา เช่น "บุรีรัมย์วันอาทิตย์ที่..." → "บุรีรัมย์"
+  s = s.replace(/วัน(จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์)?ที่.*$/u, '').trim()
+  // ตัดเครื่องหมายคั่นตกค้างหัว-ท้าย
+  s = s.replace(/^[-–—·,\s]+|[-–—·,\s]+$/g, '').trim()
+  if (!s) return null
+
+  // คำขยะที่ไม่ใช่สถานที่ (หลุดมาจากการตัดข้อความต้นทาง)
+  if (/^(วันนี้|วันนั้น|วันเดียวกัน)$/.test(s)) return null
+
+  // ค่าที่เป็นเวลา/ตัวเลขล้วน เช่น "09.55", "10.16 น.", "11.13-11.43", "น."
+  if (/^\d{1,2}[.:]\d{2}([-–]\d{1,2}[.:]\d{2})?$/.test(s)) return null
+  if (/^น\.?$/.test(s) || /\d{1,2}[.:]\d{2}\s*น\.?$/.test(s)) return null
+  if (/เวลา/.test(s)) return null
+
+  // ยังมีคำบอกวันที่/ปีหลงเหลือ → ทั้งค่าเป็นวันที่ ไม่ใช่สถานที่
+  if (THAI_MONTHS.test(s) || /พ\.ศ\.|พุทธศักราช/.test(s)) return null
+
+  // ประโยคยาวที่ไม่ใช่ชื่อสถานที่ (ชื่อจังหวัดจริงยาวสุด ~15 ตัวอักษร —
+  // ข้อยกเว้นคีย์เวิร์ดสถานธรรมใช้กับ temple เท่านั้น)
+  if (isProvince) {
+    if (s.length > 16) return null
+  } else if (s.length > 32 && !TEMPLE_HINT.test(s)) {
+    return null
+  }
+
+  return s
+}
+
 function metaFromTeaching(t) {
   return {
     deity_th: t.deity_th || '',
     location_th: t.location_th ?? null,
-    temple_th: t.temple_th ?? null,
-    province_th: t.province_th ?? null,
+    temple_th: cleanPlaceValue(t.temple_th),
+    province_th: cleanPlaceValue(t.province_th, { isProvince: true }),
     country: t.country ?? null,
     date: t.date ?? null,
     category: t.category ?? null,
@@ -111,17 +153,19 @@ export function getSearchIndex() {
   const index = []
   for (const t of getTeachings()) {
     const paragraphs = splitIntoParagraphs(t.content_th || '')
+    const temple = cleanPlaceValue(t.temple_th)
+    const province = cleanPlaceValue(t.province_th, { isProvince: true })
     index.push({
       id: t.id,
       deity: t.deity_th || '',
-      temple: t.temple_th ?? null,
-      province: t.province_th ?? null,
+      temple,
+      province,
       country: t.country ?? null,
       date: t.date ?? null,
       category: t.category ?? null,
       deityLower: (t.deity_th || '').toLowerCase(),
-      templeLower: (t.temple_th || '').toLowerCase(),
-      provinceLower: (t.province_th || '').toLowerCase(),
+      templeLower: (temple || '').toLowerCase(),
+      provinceLower: (province || '').toLowerCase(),
       locationLower: (t.location_th || '').toLowerCase(),
       paragraphs,
       paragraphsLower: paragraphs.map((p) => p.toLowerCase()),
