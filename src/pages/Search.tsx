@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type SearchHit } from '../lib/format'
 import { useAuth } from '../lib/auth'
@@ -19,6 +19,10 @@ interface SearchResponse {
   total: number
   facets: Record<FacetKey, [string, number][]>
 }
+
+// Cache ผลค้นหาต่อชุดพารามิเตอร์ (module scope — อยู่ตลอด session)
+// ทำให้กด "กลับหน้าค้นหา" แล้วผลเดิมเรนเดอร์ทันทีในเฟรมแรก ไม่มีจอว่าง/ภาพกระตุก
+const responseCache = new Map<string, SearchResponse>()
 
 const chipBase: CSSProperties = {
   display: 'flex',
@@ -252,8 +256,12 @@ export default function Search() {
   const fCategory = searchParams.get('category') || ''
   const fYear = searchParams.get('year') || ''
 
+  // คีย์ประจำชุดพารามิเตอร์ค้นหา — ใช้เป็น key ของ response cache
+  const paramsKey = JSON.stringify([urlQ.trim(), fDeity, fTemple, fCategory, fYear])
+
+  // เรนเดอร์ผลจาก cache ได้ทันทีตั้งแต่เฟรมแรก (กันภาพกระตุกตอนกด "กลับหน้าค้นหา")
   const [input, setInput] = useState(urlQ)
-  const [data, setData] = useState<SearchResponse | null>(null)
+  const [data, setData] = useState<SearchResponse | null>(() => responseCache.get(paramsKey) ?? null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -264,9 +272,13 @@ export default function Search() {
   const hasCriteria = !!urlQ.trim() || hasAnyFilter
 
   // Refetch whenever the query or any filter in the URL changes.
+  // ถ้ามีใน cache ใช้ทันที ไม่ยิงซ้ำ (ข้อมูลคลังคงที่ตลอด session)
   useEffect(() => {
-    if (!hasCriteria) {
-      // Still fetch once to populate facet dropdowns with the full corpus.
+    const cached = responseCache.get(paramsKey)
+    if (cached) {
+      setData(cached)
+      setLoading(false)
+      return
     }
     let cancelled = false
     setLoading(true)
@@ -279,6 +291,7 @@ export default function Search() {
     fetch(`/api/search?${params}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((d: SearchResponse) => {
+        responseCache.set(paramsKey, d)
         if (!cancelled) setData(d)
       })
       .catch(() => {
@@ -290,10 +303,12 @@ export default function Search() {
     return () => {
       cancelled = true
     }
-  }, [urlQ, fDeity, fTemple, fCategory, fYear, hasCriteria])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsKey])
 
   // คืนตำแหน่ง scroll เดิมเมื่อกลับมาจากหน้าอ่านฉบับเต็ม (Bug #12)
-  useEffect(() => {
+  // useLayoutEffect = เลื่อนก่อนเบราว์เซอร์วาดเฟรม → ไม่เห็นภาพกระโดด
+  useLayoutEffect(() => {
     if (loading || !data) return
     const saved = sessionStorage.getItem('ow_search_scroll')
     if (saved) {
