@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type Teaching } from '../lib/format'
+import { useAuth } from '../lib/auth'
+import UserMenu from '../components/UserMenu'
 
 export default function FullText() {
   const [searchParams] = useSearchParams()
   const id = searchParams.get('id') || ''
+  const { user, logout } = useAuth()
 
   const [scale, setScale] = useState(100)
   const [light, setLight] = useState(false)
@@ -119,35 +122,40 @@ export default function FullText() {
             <span className="ow-archive-text">กลับคลังพระโอวาท</span>
           </Link>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            padding: 6,
-            borderRadius: 999,
-            flexShrink: 0,
-            background: 'rgba(20,12,4,0.45)',
-            border: '1px solid rgba(200,150,70,0.28)',
-          }}
-        >
-          <button
-            className="ow-icon-btn"
-            onClick={() => setScale((s) => Math.max(70, s - 10))}
-            aria-label="ลดขนาดตัวอักษร"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 32, border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: '#e0bd84', fontFamily: "'Sarabun', sans-serif", fontSize: 16, fontWeight: 600 }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: 6,
+              borderRadius: 999,
+              flexShrink: 0,
+              background: 'rgba(20,12,4,0.45)',
+              border: '1px solid rgba(200,150,70,0.28)',
+            }}
           >
-            ก−
-          </button>
-          <span style={{ minWidth: 46, textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#cdb085' }}>{percentLabel}</span>
-          <button
-            className="ow-icon-btn"
-            onClick={() => setScale((s) => Math.min(170, s + 10))}
-            aria-label="เพิ่มขนาดตัวอักษร"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 32, border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: '#e0bd84', fontFamily: "'Sarabun', sans-serif", fontSize: 18, fontWeight: 600 }}
-          >
-            ก+
-          </button>
+            <button
+              className="ow-icon-btn"
+              onClick={() => setScale((s) => Math.max(70, s - 10))}
+              aria-label="ลดขนาดตัวอักษร"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 32, border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: '#e0bd84', fontFamily: "'Sarabun', sans-serif", fontSize: 16, fontWeight: 600 }}
+            >
+              ก−
+            </button>
+            <span style={{ minWidth: 46, textAlign: 'center', fontSize: 14, fontWeight: 600, color: '#cdb085' }}>{percentLabel}</span>
+            <button
+              className="ow-icon-btn"
+              onClick={() => setScale((s) => Math.min(170, s + 10))}
+              aria-label="เพิ่มขนาดตัวอักษร"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 32, border: 'none', borderRadius: 999, cursor: 'pointer', background: 'transparent', color: '#e0bd84', fontFamily: "'Sarabun', sans-serif", fontSize: 18, fontWeight: 600 }}
+            >
+              ก+
+            </button>
+          </div>
+
+          {/* ปุ่มผู้ใช้/เข้าสู่ระบบ — มีทุกหน้า (Bug #7) */}
+          <UserMenu user={user} onLogout={logout} />
         </div>
       </header>
 

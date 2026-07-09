@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type SearchHit } from '../lib/format'
+import { useAuth } from '../lib/auth'
+import UserMenu from '../components/UserMenu'
 
 type FacetKey = 'deity' | 'temple' | 'category' | 'year'
 
@@ -242,6 +244,7 @@ function FacetChip({
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   const urlQ = searchParams.get('q') || ''
   const fDeity = searchParams.get('deity') || ''
@@ -327,7 +330,8 @@ export default function Search() {
           padding: '18px 0 16px',
         }}
       >
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 clamp(16px, 5vw, 40px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* ชิดซ้ายเหมือน header หน้าอื่น (Bug #7) — โลโก้ซ้ายสุด, ปุ่มผู้ใช้ขวาสุด */}
+        <div style={{ width: '100%', padding: '0 clamp(14px, 4vw, 32px)', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="ow-search-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
             <Link
               to="/"
@@ -425,6 +429,11 @@ export default function Search() {
                   />
                 ))}
               </div>
+            </div>
+
+            {/* ปุ่มผู้ใช้/เข้าสู่ระบบ — มีทุกหน้า (Bug #7) */}
+            <div style={{ flexShrink: 0 }}>
+              <UserMenu user={user} onLogout={logout} />
             </div>
           </div>
         </div>
