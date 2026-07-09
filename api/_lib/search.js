@@ -121,11 +121,16 @@ export function runSearch(query, filters = {}) {
   }
 
   // ── 4. Final hits — all filters applied ──
+  // เรียงตามวันที่ ใหม่สุดขึ้นก่อนเสมอ, ไม่มีวันที่อยู่ท้ายสุด (Bug #11 — มติคอนเฟิร์ม)
+  // เสมอกันค่อยใช้คะแนนความตรงของคำค้นตัดสิน
   const filtered = matches.filter((m) => passes(m, null))
   filtered.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score
-    // Browse mode / ties: newest first
-    return (b.t.date || '').localeCompare(a.t.date || '')
+    const da = a.t.date || ''
+    const db = b.t.date || ''
+    if (da && !db) return -1
+    if (!da && db) return 1
+    if (da !== db) return db.localeCompare(da)
+    return b.score - a.score
   })
 
   const hits = filtered.slice(0, MAX_HITS).map((m) => ({
