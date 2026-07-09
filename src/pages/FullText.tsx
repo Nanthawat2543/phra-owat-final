@@ -10,7 +10,8 @@ export default function FullText() {
   const { user, logout } = useAuth()
 
   const [scale, setScale] = useState(100)
-  const [light, setLight] = useState(false)
+  // โหมดสว่างถูกปิดใช้งานชั่วคราวตามมติประชุม (Bug #13) — คงโหมดมืดอย่างเดียว
+  const light = false
   const [teaching, setTeaching] = useState<Teaching | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -36,7 +37,6 @@ export default function FullText() {
   const pageBg = light
     ? 'radial-gradient(120% 90% at 50% 0%, #2a1808 0%, #1a0f04 60%, #0e0702 100%)'
     : 'radial-gradient(120% 90% at 50% 0%, #2c1a0a 0%, #190e04 58%, #0c0602 100%)'
-  const wmColor = light ? 'rgba(233,184,94,0.05)' : 'rgba(233,184,94,0.055)'
   const sheetBg = light
     ? 'linear-gradient(180deg, #f6ecd6, #efe1c4)'
     : 'linear-gradient(180deg, rgba(52,32,12,0.62), rgba(33,20,8,0.58))'
@@ -61,16 +61,7 @@ export default function FullText() {
         transition: 'background 0.3s',
       }}
     >
-      {/* Anti-copy watermark */}
-      <svg aria-hidden="true" style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
-        <defs>
-          <pattern id="owWm" width="320" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
-            <text x="0" y="28" fill={wmColor} fontFamily="Sarabun, sans-serif" fontSize="15" fontWeight="600">พระโอวาท</text>
-            <text x="46" y="62" fill={wmColor} fontFamily="Sarabun, sans-serif" fontSize="13">สำหรับศึกษาเท่านั้น</text>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#owWm)" />
-      </svg>
+      {/* ลายน้ำถูกถอดออกชั่วคราวตามมติประชุม (Bug #10) — โค้ดเดิมอยู่ใน git history */}
 
       <header
         className="ow-full-head"
@@ -224,34 +215,7 @@ export default function FullText() {
         </article>
       </main>
 
-      <button
-        className="ow-theme-toggle"
-        onClick={() => setLight((v) => !v)}
-        aria-label="สลับโหมดอ่าน"
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 30,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 52,
-          height: 52,
-          border: '1px solid rgba(222,170,80,0.4)',
-          borderRadius: '50%',
-          cursor: 'pointer',
-          background: 'rgba(40,24,8,0.7)',
-          color: '#f0c878',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(6px)',
-        }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.9" />
-          <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
-      </button>
+      {/* ปุ่มสลับโหมดสว่างถูกปิดใช้งานชั่วคราวตามมติประชุม (Bug #13) */}
     </div>
   )
 }
