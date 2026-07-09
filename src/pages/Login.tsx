@@ -26,6 +26,11 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // ฟิลด์สมัครสมาชิก (Bug #14)
+  const [fullName, setFullName] = useState('')
+  const [dharmaTitle, setDharmaTitle] = useState('')
+  const [temple, setTemple] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -34,10 +39,40 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
+
     if (!isLogin) {
-      setMessage({ text: 'ยังไม่เปิดรับสมัครสมาชิกในเวอร์ชันนี้ กรุณาติดต่อผู้ดูแลระบบ', error: true })
+      // สมัครสมาชิก → บันทึกใบสมัครลงฐานข้อมูล (สถานะรออนุมัติ)
+      setSubmitting(true)
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: fullName.trim(),
+            dharmaTitle: dharmaTitle.trim(),
+            temple: temple.trim(),
+            email: email.trim(),
+            password,
+            confirmPassword,
+          }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          setMessage({ text: data.error || 'สมัครสมาชิกไม่สำเร็จ', error: true })
+        } else {
+          setMessage({ text: data.message || 'สมัครสมาชิกสำเร็จ รอผู้ดูแลระบบอนุมัติ', error: false })
+          setMode('login')
+          setPassword('')
+          setConfirmPassword('')
+        }
+      } catch {
+        setMessage({ text: 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง', error: true })
+      } finally {
+        setSubmitting(false)
+      }
       return
     }
+
     if (!email.trim() || !password) {
       setMessage({ text: 'กรุณากรอกอีเมลและรหัสผ่าน', error: true })
       return
@@ -142,10 +177,42 @@ export default function Login() {
         >
           <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }} onSubmit={handleSubmit}>
             {!isLogin && (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={labelStyle}>ชื่อ-นามสกุล</span>
-                <input type="text" placeholder="กรอกชื่อของคุณ" className="ow-field" style={fieldStyle} />
-              </label>
+              <>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span style={labelStyle}>ชื่อ-นามสกุล</span>
+                  <input
+                    type="text"
+                    placeholder="กรอกชื่อของคุณ"
+                    className="ow-field"
+                    style={fieldStyle}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    autoComplete="name"
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span style={labelStyle}>ตำแหน่งทางธรรม</span>
+                  <input
+                    type="text"
+                    placeholder="เช่น ถันจู่ เจี่ยงซือ เฉียนเสียน"
+                    className="ow-field"
+                    style={fieldStyle}
+                    value={dharmaTitle}
+                    onChange={(e) => setDharmaTitle(e.target.value)}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span style={labelStyle}>สถานธรรม</span>
+                  <input
+                    type="text"
+                    placeholder="ชื่อสถานธรรมของคุณ"
+                    className="ow-field"
+                    style={fieldStyle}
+                    value={temple}
+                    onChange={(e) => setTemple(e.target.value)}
+                  />
+                </label>
+              </>
             )}
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -204,7 +271,15 @@ export default function Login() {
             {!isLogin && (
               <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={labelStyle}>ยืนยันรหัสผ่าน</span>
-                <input type="password" placeholder="••••••••" className="ow-field" style={fieldStyle} />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="ow-field"
+                  style={fieldStyle}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
               </label>
             )}
 

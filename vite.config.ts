@@ -11,6 +11,7 @@ function apiDevServer(): Plugin {
     '/api/auth/login': './api/auth/login.js',
     '/api/auth/me': './api/auth/me.js',
     '/api/auth/logout': './api/auth/logout.js',
+    '/api/auth/register': './api/auth/register.js',
   }
 
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {
@@ -56,7 +57,7 @@ function apiDevServer(): Plugin {
 export default defineConfig(({ mode }) => {
   // Expose auth env vars from .env to the in-process /api handlers during dev.
   const env = loadEnv(mode, process.cwd(), '')
-  for (const key of ['ADMIN_EMAIL', 'ADMIN_PASSWORD_SHA256', 'AUTH_SECRET']) {
+  for (const key of ['ADMIN_EMAIL', 'ADMIN_PASSWORD_SHA256', 'AUTH_SECRET', 'BLOB_READ_WRITE_TOKEN']) {
     if (env[key] && !process.env[key]) process.env[key] = env[key]
   }
   return {
