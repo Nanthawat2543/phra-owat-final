@@ -292,6 +292,16 @@ export default function Search() {
     }
   }, [urlQ, fDeity, fTemple, fCategory, fYear, hasCriteria])
 
+  // คืนตำแหน่ง scroll เดิมเมื่อกลับมาจากหน้าอ่านฉบับเต็ม (Bug #12)
+  useEffect(() => {
+    if (loading || !data) return
+    const saved = sessionStorage.getItem('ow_search_scroll')
+    if (saved) {
+      sessionStorage.removeItem('ow_search_scroll')
+      window.scrollTo(0, parseInt(saved, 10) || 0)
+    }
+  }, [loading, data])
+
   const updateParams = (patch: Record<string, string>) => {
     const next = new URLSearchParams(searchParams)
     for (const [k, v] of Object.entries(patch)) {
@@ -465,7 +475,15 @@ export default function Search() {
               {data.hits.map((hit, i) => (
                 <button
                   key={`${hit.teachingId}-${hit.paragraphIndex}-${i}`}
-                  onClick={() => navigate(`/full?id=${encodeURIComponent(hit.teachingId)}`)}
+                  onClick={() => {
+                    // จำตำแหน่ง scroll ไว้ก่อนไปอ่านฉบับเต็ม (Bug #12)
+                    try {
+                      sessionStorage.setItem('ow_search_scroll', String(window.scrollY))
+                    } catch {
+                      /* private mode */
+                    }
+                    navigate(`/full?id=${encodeURIComponent(hit.teachingId)}`)
+                  }}
                   className="ow-result-card"
                   style={{
                     textAlign: 'left',

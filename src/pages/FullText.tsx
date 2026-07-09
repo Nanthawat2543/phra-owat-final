@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type Teaching } from '../lib/format'
 import { useAuth } from '../lib/auth'
 import UserMenu from '../components/UserMenu'
 
 export default function FullText() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const id = searchParams.get('id') || ''
   const { user, logout } = useAuth()
+
+  // กลับหน้าค้นหาแบบคงผลค้น/ตำแหน่งเดิม (Bug #12) — ใช้ history back
+  // ถ้าเปิดหน้านี้ตรงๆ (ไม่มีประวัติ) ให้ไปหน้าค้นหาเปล่าแทน
+  const goBackToSearch = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
+    if (idx > 0) navigate(-1)
+    else navigate('/search')
+  }
 
   const [scale, setScale] = useState(100)
   // โหมดสว่างถูกปิดใช้งานชั่วคราวตามมติประชุม (Bug #13) — คงโหมดมืดอย่างเดียว
@@ -102,16 +111,16 @@ export default function FullText() {
             พระโอวาท
           </Link>
           <span style={{ width: 1, height: 22, background: 'rgba(214,160,70,0.3)', flexShrink: 0 }} />
-          <Link
-            to="/search"
+          <button
+            onClick={goBackToSearch}
             className="ow-archive-link"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', color: '#e6b65c', fontSize: 15, fontWeight: 500, flexShrink: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e6b65c', fontFamily: "'Sarabun', sans-serif", fontSize: 15, fontWeight: 500, flexShrink: 0, padding: 0 }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="ow-archive-text">กลับคลังพระโอวาท</span>
-          </Link>
+            <span className="ow-archive-text">กลับหน้าค้นหา</span>
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <div
