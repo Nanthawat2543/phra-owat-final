@@ -204,7 +204,7 @@ function FacetChip({
               />
             </div>
           )}
-          <div style={{ maxHeight: 260, overflowY: 'auto', padding: '6px 6px 8px' }}>
+          <div className="ow-facet-scroll" style={{ maxHeight: 260, overflowY: 'auto', padding: '6px 6px 8px' }}>
             <button
               onClick={() => {
                 onSelect('')
