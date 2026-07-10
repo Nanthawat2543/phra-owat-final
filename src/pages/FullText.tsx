@@ -95,6 +95,9 @@ export default function FullText() {
             className="ow-wordmark"
             aria-label="กลับหน้าหลัก"
             style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              lineHeight: 1,
               textDecoration: 'none',
               fontWeight: 700,
               fontSize: 22,
@@ -110,11 +113,11 @@ export default function FullText() {
           >
             พระโอวาท
           </Link>
-          <span className="ow-full-divider" style={{ width: 1, height: 22, background: 'rgba(214,160,70,0.3)', flexShrink: 0 }} />
+          <span className="ow-full-divider" style={{ width: 1, height: 22, background: 'rgba(214,160,70,0.4)', flexShrink: 0 }} />
           <button
             onClick={goBackToSearch}
             className="ow-archive-link"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e6b65c', fontFamily: "'Sarabun', sans-serif", fontSize: 15, fontWeight: 500, flexShrink: 0, padding: 0 }}
+            style={{ display: 'flex', alignItems: 'center', lineHeight: 1, gap: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e6b65c', fontFamily: "'Sarabun', sans-serif", fontSize: 15, fontWeight: 500, flexShrink: 0, padding: 0 }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />

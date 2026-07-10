@@ -211,18 +211,22 @@ input::placeholder {
      และปุ่มเข้าสู่ระบบเหลือไอคอนกลม ให้พอดีจอแคบโดยไม่ทับกัน */
   .ow-full-head {
     gap: 8px !important;
+    align-items: center !important;
   }
   .ow-full-head .ow-wordmark {
     font-size: 17px !important;
   }
   .ow-full-left {
     gap: 8px !important;
+    align-items: center !important;
   }
+  /* เส้นคั่นบางๆ ระหว่างโลโก้กับปุ่มย้อนกลับ — แยกให้เห็นชัดว่าเป็นคนละส่วน */
   .ow-full-divider {
-    display: none;
+    height: 18px !important;
   }
   .ow-full-right {
     gap: 6px !important;
+    align-items: center !important;
   }
   .ow-full-right .ow-icon-btn {
     width: 28px !important;
