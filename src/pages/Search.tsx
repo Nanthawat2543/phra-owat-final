@@ -103,25 +103,28 @@ function FacetChip({
     setOpen((o) => !o)
   }
 
-  // Close when clicking outside, scrolling, or resizing (fixed panel would drift)
+  // ปิดเมื่อคลิกนอกแผง — ส่วนการเลื่อนจอ/จอเปลี่ยนขนาด (เช่นคีย์บอร์ดมือถือเด้งขึ้น)
+  // ให้ "ย้ายแผงตามปุ่ม" แทนการปิด (เดิมสั่งปิด ทำให้พิมพ์ค้นหาในแผงบนมือถือไม่ได้
+  // เพราะคีย์บอร์ดเด้ง → resize → แผงถูกปิดทันที)
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    const onScroll = (e: Event) => {
-      // เลื่อนภายในแผงตัวเลือกเองไม่ต้องปิด
-      if (ref.current && e.target instanceof Node && ref.current.contains(e.target)) return
-      setOpen(false)
+    const reposition = () => {
+      if (!ref.current) return
+      const rect = ref.current.getBoundingClientRect()
+      const panelW = Math.min(300, window.innerWidth - 24)
+      const left = Math.min(rect.left, window.innerWidth - panelW - 12)
+      setPanelPos({ top: rect.bottom + 8, left: Math.max(12, left) })
     }
-    const onResize = () => setOpen(false)
     document.addEventListener('mousedown', onDoc)
-    window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onResize)
+    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', reposition)
     return () => {
       document.removeEventListener('mousedown', onDoc)
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', reposition)
     }
   }, [open])
 
@@ -185,7 +188,8 @@ function FacetChip({
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={`ค้นหา${label}...`}
-                autoFocus
+                // เดสก์ท็อปโฟกัสให้เลย ส่วนจอสัมผัสให้ผู้ใช้แตะเอง (กันคีย์บอร์ดเด้งบังแผง)
+                autoFocus={typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches}
                 style={{
                   width: '100%',
                   padding: '8px 12px',
