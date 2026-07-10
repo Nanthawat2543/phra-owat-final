@@ -88,16 +88,41 @@ function FacetChip({
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState('')
+  // ตำแหน่งกางแผง — ใช้ fixed จากตำแหน่งปุ่มจริง เพราะแถวชิปเป็น scroll container
+  // (overflow-x) ซึ่งจะตัดแผงแบบ absolute ทิ้งบนจอแคบ
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close when clicking outside
+  const toggleOpen = () => {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      const panelW = Math.min(300, window.innerWidth - 24)
+      const left = Math.min(rect.left, window.innerWidth - panelW - 12)
+      setPanelPos({ top: rect.bottom + 8, left: Math.max(12, left) })
+    }
+    setOpen((o) => !o)
+  }
+
+  // Close when clicking outside, scrolling, or resizing (fixed panel would drift)
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
+    const onScroll = (e: Event) => {
+      // เลื่อนภายในแผงตัวเลือกเองไม่ต้องปิด
+      if (ref.current && e.target instanceof Node && ref.current.contains(e.target)) return
+      setOpen(false)
+    }
+    const onResize = () => setOpen(false)
     document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onResize)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onResize)
+    }
   }, [open])
 
   const active = !!value
@@ -107,7 +132,7 @@ function FacetChip({
 
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button onClick={() => setOpen((o) => !o)} style={active ? chipActive : chipIdle}>
+      <button onClick={toggleOpen} style={active ? chipActive : chipIdle}>
         <span>{active ? (displayValue ? displayValue(value) : value) : label}</span>
         {active ? (
           <span
@@ -137,15 +162,15 @@ function FacetChip({
         )}
       </button>
 
-      {open && (
+      {open && panelPos && (
         <div
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            left: 0,
+            position: 'fixed',
+            top: panelPos.top,
+            left: panelPos.left,
             zIndex: 40,
             minWidth: 230,
-            maxWidth: 300,
+            maxWidth: Math.min(300, window.innerWidth - 24),
             borderRadius: 14,
             background: 'linear-gradient(180deg, rgba(52,32,12,0.98), rgba(33,20,8,0.98))',
             border: '1px solid rgba(222,170,80,0.4)',

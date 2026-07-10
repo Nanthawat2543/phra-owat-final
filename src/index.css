@@ -193,6 +193,20 @@ input::placeholder {
     flex-basis: 100% !important;
   }
 
+  /* ชิปกรอง: แถวเดียว เลื่อนซ้าย-ขวาได้ (ซ่อน scrollbar) แทนการห่อ 2 บรรทัด */
+  .ow-chip-row {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* ยืดพื้นที่เลื่อนถึงขอบจอ ให้ปัดได้ลื่นเหมือน native */
+    margin: 0 -14px;
+    padding: 2px 14px;
+  }
+  .ow-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Full-text: header แถวเดียวแบบกะทัดรัด — ย่อโลโก้/ตัวปรับอักษร
      และปุ่มเข้าสู่ระบบเหลือไอคอนกลม ให้พอดีจอแคบโดยไม่ทับกัน */
   .ow-full-head {
