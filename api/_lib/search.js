@@ -2,7 +2,7 @@
 // class / year), with facet value aggregation for the dropdown filters.
 // Scoring logic ported from the original phra-owat app/api/search/route.ts.
 
-import { expandQueryTerms } from './passages.js'
+import { expandQueryTerms, displayKey } from './passages.js'
 import { getSearchIndex, countOccurrences } from './data.js'
 
 const PAGE_SIZE = 50
@@ -93,10 +93,10 @@ export function runSearch(query, filters = {}, page = 1) {
   const bySig = new Map()
   const deduped = []
   for (const m of matches) {
-    // คีย์ = ท่อนที่แสดงจริง (snippet) เป็นหลัก — ตรงกับที่ผู้ใช้เห็นว่าซ้ำ;
-    // สำรองด้วยลายเซ็นเนื้อหาเต็ม
+    // คีย์ = ท่อนที่แสดงจริงหลังล้าง markdown — สอง snippet ที่ต่างกันแค่ `>` หรือ `**`
+    // ผู้ใช้เห็นเป็นข้อความเดียวกัน จึงต้องนับเป็นรายการเดียว
     const snippet = m.t.paragraphs[m.idx] || ''
-    const key = (snippet.replace(/\s+/g, '') || m.t.sig || m.t.id)
+    const key = displayKey(snippet) || m.t.sig || m.t.id
     const prev = bySig.get(key)
     if (!prev) {
       bySig.set(key, m)

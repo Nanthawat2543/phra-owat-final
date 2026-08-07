@@ -120,6 +120,22 @@ export const popularTopics = [
   { label: 'ศรัทธา', query: 'ศรัทธา' },
 ]
 
+// ทำข้อความให้อยู่ในรูปที่ "ผู้ใช้เห็นจริง" — ล้าง markdown/ขยะแบบเดียวกับ
+// stripMarkdown ฝั่ง UI (src/lib/format.ts) แล้วตัดช่องว่างทิ้ง
+// ใช้เป็นคีย์ dedupe: สอง snippet ที่ต่างกันแค่ `>` หรือ `**` ต้องนับเป็นอันเดียวกัน
+export function displayKey(text) {
+  return String(text || '')
+    .replace(/^#{1,9}\s*/, '')
+    .replace(/^>\s*/, '')
+    .replace(/\*+/g, '')
+    .replace(/\{[^}]*(?:width|height)=[^}]*\}/gi, '')
+    .replace(/\\-/g, '-')
+    .replace(/(?:^|\s)-{2,}(?:\s|$)/g, ' ')
+    .replace(/\\(?=[.\s-]|$)/g, '')
+    .replace(/\s+/g, '')
+    .trim()
+}
+
 // ค้นหาตรงตามคำที่พิมพ์เท่านั้น — ไม่ขยายคำพ้อง (Bug #4: ค้น "เมตตา" ต้องไม่แมตช์ "รัก")
 // คำค้นหลายคำ (คั่นวรรค) จะค้นทั้งวลีเต็มและรายคำ
 export function expandQueryTerms(query) {
