@@ -142,8 +142,34 @@ export default function UserMenu({ user, onLogout }: { user: User | null; onLogo
             )}
           </div>
 
-          {/* Logout */}
+          {/* Menu */}
           <div style={{ padding: 10 }}>
+            {user.role === 'admin' && (
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="ow-menu-item"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: 12,
+                  textDecoration: 'none',
+                  color: '#e6c890',
+                  fontFamily: "'Sarabun', sans-serif",
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  boxSizing: 'border-box',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z" />
+                </svg>
+                จัดการสมาชิก
+              </Link>
+            )}
             <button
               onClick={() => {
                 setOpen(false)

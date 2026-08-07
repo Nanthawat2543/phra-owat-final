@@ -63,18 +63,18 @@ export default async function handler(req, res) {
       temple: String(body.temple).trim(),
       email,
       passwordSha256: createHash('sha256').update(String(body.password), 'utf8').digest('hex'),
-      // ยังไม่มีระบบอนุมัติ — ให้เข้าสู่ระบบได้ทันทีหลังสมัคร (แอดมินปรับเป็น blocked ได้ภายหลัง)
-      status: 'active',
+      status: 'pending', // รอผู้ดูแลระบบอนุมัติก่อนจึงเข้าสู่ระบบได้
       createdAt: new Date().toISOString(),
     }
     await put(`members/${emailKey}-${record.id}.json`, JSON.stringify(record, null, 2), {
       access: 'private',
       contentType: 'application/json',
       allowOverwrite: true,
+      cacheControlMaxAge: 0, // record แก้ไขได้ — ไม่ให้ CDN แคช
     })
 
     res.setHeader('Cache-Control', 'no-store')
-    res.status(200).json({ ok: true, message: 'สมัครสมาชิกสำเร็จ เข้าสู่ระบบได้เลย' })
+    res.status(200).json({ ok: true, message: 'สมัครสมาชิกสำเร็จ รอผู้ดูแลระบบอนุมัติก่อนเข้าใช้งาน' })
   } catch (err) {
     console.error('register failed:', err)
     res.status(500).json({ error: 'บันทึกใบสมัครไม่สำเร็จ ลองใหม่อีกครั้ง' })

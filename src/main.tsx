@@ -6,12 +6,14 @@ import Home from './pages/Home'
 import Search from './pages/Search'
 import FullText from './pages/FullText'
 import Login from './pages/Login'
+import AdminMembers from './pages/AdminMembers'
 
 const router = createHashRouter([
   { path: '/', element: <Home /> },
   { path: '/search', element: <Search /> },
   { path: '/full', element: <FullText /> },
   { path: '/login', element: <Login /> },
+  { path: '/admin', element: <AdminMembers /> },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

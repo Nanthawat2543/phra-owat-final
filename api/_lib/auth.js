@@ -4,8 +4,20 @@
 //   ADMIN_PASSWORD_SHA256  hex sha256 of the password
 //   AUTH_SECRET            JWT signing secret
 
-import { createHmac, createHash, timingSafeEqual } from 'node:crypto'
-import { list } from '@vercel/blob'
+import { createHmac, createHash, timingSafeEqual, randomUUID } from 'node:crypto'
+import { list, put, del } from '@vercel/blob'
+
+// อ่านไฟล์ private blob (downloadUrl แบบ signed คืน 403 ต้องแนบ token)
+// bust CDN cache ด้วย query timestamp + no-store เพราะ record นี้แก้ไขได้ (mutable)
+async function readBlobJson(url) {
+  const bust = url + (url.includes('?') ? '&' : '?') + '_ts=' + Date.now()
+  const res = await fetch(bust, {
+    cache: 'no-store',
+    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+  })
+  if (!res.ok) return null
+  return res.json()
+}
 
 export const SESSION_COOKIE = 'ow_session'
 const SESSION_DAYS = 7
@@ -64,24 +76,25 @@ export function checkAdminCredentials(email, password) {
   return { email: adminEmail, name: 'ผู้ดูแลระบบ (ทดสอบ)', role: 'admin' }
 }
 
-// อ่านใบสมัครสมาชิกจาก Blob ตามอีเมล
-export async function findMemberByEmail(email) {
+// หา blob ของสมาชิกตามอีเมล (คืน record + pathname สำหรับเขียนทับ)
+async function findMemberBlob(email) {
   const e = (email || '').trim().toLowerCase()
   if (!e) return null
   const { blobs } = await list({ prefix: `members/${emailKeyOf(e)}-` })
   if (!blobs.length) return null
-  // เผื่อมีหลายไฟล์ (ไม่ควรเกิด) ใช้ล่าสุด
   const blob = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0]
-  // blob เป็น private — ต้องแนบ token ตอนอ่าน (downloadUrl แบบ signed คืน 403)
-  const res = await fetch(blob.url, {
-    headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-  })
-  if (!res.ok) return null
-  return await res.json()
+  const rec = await readBlobJson(blob.url)
+  return rec ? { rec, pathname: blob.pathname } : null
 }
 
-// บัญชีสมาชิกที่สมัครไว้ (ตรวจแบบ async จาก Blob)
-export async function checkMemberCredentials(email, password) {
+export async function findMemberByEmail(email) {
+  const found = await findMemberBlob(email)
+  return found ? found.rec : null
+}
+
+// ตรวจรหัสผ่านสมาชิก — คืน record (รวม status) ถ้ารหัสถูก, null ถ้าไม่มี/รหัสผิด
+// ให้ผู้เรียกตัดสินใจตาม status เอง (แยกข้อความ "รหัสผิด" กับ "รออนุมัติ")
+export async function verifyMemberPassword(email, password) {
   let rec
   try {
     rec = await findMemberByEmail(email)
@@ -89,21 +102,51 @@ export async function checkMemberCredentials(email, password) {
     return null
   }
   if (!rec) return null
-  if (rec.status === 'blocked' || rec.status === 'rejected') return null
   const hash = createHash('sha256').update(password || '', 'utf8').digest('hex')
   if (!hashEquals(hash, rec.passwordSha256)) return null
-  return {
-    email: rec.email,
-    name: rec.name || rec.email,
-    role: 'member',
-    dharmaTitle: rec.dharmaTitle || '',
-    temple: rec.temple || '',
-  }
+  return rec
 }
 
-// รวม: แอดมินก่อน แล้วค่อยสมาชิก
-export async function authenticate(email, password) {
-  return checkAdminCredentials(email, password) || (await checkMemberCredentials(email, password))
+// แอดมินอัปเดตสถานะสมาชิก (approve/reject/block)
+// เขียนไฟล์ path ใหม่เสมอ แล้วลบไฟล์เก่า — เพราะเขียนทับ path เดิม Vercel Blob CDN
+// จะแคชค่าเก่าค้าง (query-bust ไม่ช่วย) ทำให้ login อ่านสถานะเก่า
+export async function setMemberStatus(email, status) {
+  const e = (email || '').trim().toLowerCase()
+  const { blobs } = await list({ prefix: `members/${emailKeyOf(e)}-` })
+  if (!blobs.length) return false
+  const newest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0]
+  const rec = await readBlobJson(newest.url)
+  if (!rec) return false
+  rec.status = status
+  rec.reviewedAt = new Date().toISOString()
+  await put(`members/${emailKeyOf(e)}-${randomUUID()}.json`, JSON.stringify(rec, null, 2), {
+    access: 'private',
+    contentType: 'application/json',
+    cacheControlMaxAge: 0,
+  })
+  // ลบไฟล์เก่าทั้งหมด (URL เดิมที่อาจถูกแคช)
+  await Promise.all(blobs.map((b) => del(b.url).catch(() => {})))
+  return true
+}
+
+// รายชื่อสมาชิกทั้งหมด (ตัด hash รหัสผ่านออก) — สำหรับหน้าจัดการของแอดมิน
+export async function listMembers() {
+  const { blobs } = await list({ prefix: 'members/' })
+  const out = []
+  for (const b of blobs) {
+    const rec = await readBlobJson(b.url).catch(() => null)
+    if (!rec) continue
+    out.push({
+      email: rec.email,
+      name: rec.name || '',
+      dharmaTitle: rec.dharmaTitle || '',
+      temple: rec.temple || '',
+      status: rec.status || 'pending',
+      createdAt: rec.createdAt || null,
+      reviewedAt: rec.reviewedAt || null,
+    })
+  }
+  return out.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 }
 
 export function sessionFromRequest(req) {

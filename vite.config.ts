@@ -12,6 +12,7 @@ function apiDevServer(): Plugin {
     '/api/auth/me': './api/auth/me.js',
     '/api/auth/logout': './api/auth/logout.js',
     '/api/auth/register': './api/auth/register.js',
+    '/api/admin/members': './api/admin/members.js',
   }
 
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {

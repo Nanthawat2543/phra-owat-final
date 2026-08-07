@@ -1,5 +1,11 @@
 // POST /api/auth/login  { email, password } → sets httpOnly session cookie
-import { authenticate, signSession, sessionCookie, readJsonBody } from '../_lib/auth.js'
+import { checkAdminCredentials, verifyMemberPassword, signSession, sessionCookie, readJsonBody } from '../_lib/auth.js'
+
+const STATUS_MESSAGE = {
+  pending: 'บัญชีของคุณอยู่ระหว่างรอผู้ดูแลระบบอนุมัติ',
+  rejected: 'บัญชีของคุณไม่ได้รับอนุมัติ กรุณาติดต่อผู้ดูแลระบบ',
+  blocked: 'บัญชีของคุณถูกระงับการใช้งาน',
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,10 +20,27 @@ export default async function handler(req, res) {
     return
   }
 
-  const user = await authenticate(body.email, body.password)
+  // แอดมินก่อน
+  let user = checkAdminCredentials(body.email, body.password)
+
+  // ถ้าไม่ใช่แอดมิน ลองสมาชิก
   if (!user) {
-    res.status(401).json({ error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' })
-    return
+    let member
+    try {
+      member = await verifyMemberPassword(body.email, body.password)
+    } catch {
+      member = null
+    }
+    if (!member) {
+      res.status(401).json({ error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' })
+      return
+    }
+    // อนุญาตเฉพาะสมาชิกที่อนุมัติแล้ว
+    if (member.status !== 'active') {
+      res.status(403).json({ error: STATUS_MESSAGE[member.status] || 'บัญชียังไม่พร้อมใช้งาน' })
+      return
+    }
+    user = { email: member.email, name: member.name || member.email, role: 'member' }
   }
 
   const token = signSession({ email: user.email, name: user.name, role: user.role })
