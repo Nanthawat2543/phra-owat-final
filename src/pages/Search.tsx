@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type SearchHit } from '../lib/format'
 import { useAuth } from '../lib/auth'
+import { scrollToTop } from '../lib/scroll'
 import UserMenu from '../components/UserMenu'
 
 type FacetKey = 'deity' | 'temple' | 'category' | 'year'
@@ -389,7 +390,7 @@ export default function Search() {
     if (p > 1) next.set('page', String(p))
     else next.delete('page')
     setSearchParams(next)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollToTop()
   }
 
   const submit = () => updateParams({ q: input.trim() })
@@ -627,7 +628,7 @@ export default function Search() {
       {/* ปุ่มขึ้นบนสุด (Bug #15) */}
       {showTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => scrollToTop()}
           aria-label="กลับขึ้นบนสุด"
           className="ow-scrolltop"
           style={{
