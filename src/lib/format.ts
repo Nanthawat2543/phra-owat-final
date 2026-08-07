@@ -78,12 +78,20 @@ export function thaiDate(iso: string | null | undefined): string {
  * `*`) that live in the source content, keeping the manuscript words intact.
  */
 export function stripMarkdown(line: string): string {
-  return line
-    .replace(/^#{1,9}\s*/, '')
-    .replace(/^>\s*/, '')
-    .replace(/\*+/g, '')
-    .replace(/\\(?=[.\s]|$)/g, '')
-    .trim()
+  return (
+    line
+      .replace(/^#{1,9}\s*/, '')
+      .replace(/^>\s*/, '')
+      .replace(/\*+/g, '')
+      // ขยะจากการแปลงไฟล์ (Bug #20): {width="..." height="..."}, เส้นคั่น \-\-\-, เลขหน้า \- 2 -
+      .replace(/\{[^}]*(?:width|height)=[^}]*\}/gi, '')
+      .replace(/\\-/g, '-')
+      .replace(/(?:^|\s)-{2,}(?:\s|$)/g, ' ')
+      .replace(/^-\s*\d+\s*-$/g, '')
+      .replace(/\\(?=[.\s-]|$)/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  )
 }
 
 /** Build a place label from temple/province/location fields. */

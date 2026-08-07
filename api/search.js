@@ -14,7 +14,8 @@ export default function handler(req, res) {
     year: (searchParams.get('year') || '').trim(),
   }
 
-  const { hits, total, facets } = runSearch(q, filters)
+  const page = parseInt(searchParams.get('page') || '1', 10) || 1
+  const { hits, total, facets, page: curPage, pageSize, totalPages } = runSearch(q, filters, page)
   res.setHeader('Cache-Control', 'public, max-age=60')
-  res.status(200).json({ query: q, filters, hits, total, facets })
+  res.status(200).json({ query: q, filters, hits, total, facets, page: curPage, pageSize, totalPages })
 }

@@ -155,6 +155,8 @@ export function getSearchIndex() {
     const paragraphs = splitIntoParagraphs(t.content_th || '')
     const temple = cleanPlaceValue(t.temple_th)
     const province = cleanPlaceValue(t.province_th, { isProvince: true })
+    // ลายเซ็นเนื้อหา (120 ตัวอักษรแรกไม่รวมช่องว่าง) — ใช้รวมฉบับซ้ำ (Bug #17)
+    const sig = (t.content_th || '').replace(/\s+/g, '').slice(0, 120)
     index.push({
       id: t.id,
       deity: t.deity_th || '',
@@ -163,6 +165,7 @@ export function getSearchIndex() {
       country: t.country ?? null,
       date: t.date ?? null,
       category: t.category ?? null,
+      sig,
       deityLower: (t.deity_th || '').toLowerCase(),
       templeLower: (temple || '').toLowerCase(),
       provinceLower: (province || '').toLowerCase(),

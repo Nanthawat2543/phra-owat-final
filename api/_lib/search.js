@@ -5,7 +5,7 @@
 import { expandQueryTerms } from './passages.js'
 import { getSearchIndex, countOccurrences } from './data.js'
 
-const MAX_HITS = 50
+const PAGE_SIZE = 50
 
 function scorePassage(paraLower, terms, rawLower) {
   let score = 0
@@ -36,7 +36,7 @@ function beYear(date) {
  * @param {{deity?: string, temple?: string, category?: string, year?: string}} filters
  * @returns {{hits: object[], total: number, facets: object}}
  */
-export function runSearch(query, filters = {}) {
+export function runSearch(query, filters = {}, page = 1) {
   const rawQuery = (query || '').trim()
   const index = getSearchIndex()
 
@@ -88,6 +88,29 @@ export function runSearch(query, filters = {}) {
     }
   }
 
+  // ── 1.5 รวมฉบับเนื้อหาซ้ำให้เหลือรายการเดียว (Bug #17) ──
+  // เก็บฉบับที่คะแนนสูงสุดของแต่ละลายเซ็น (ถ้าคะแนนเท่ากันเก็บอันแรก)
+  const bySig = new Map()
+  const deduped = []
+  for (const m of matches) {
+    // คีย์ = ท่อนที่แสดงจริง (snippet) เป็นหลัก — ตรงกับที่ผู้ใช้เห็นว่าซ้ำ;
+    // สำรองด้วยลายเซ็นเนื้อหาเต็ม
+    const snippet = m.t.paragraphs[m.idx] || ''
+    const key = (snippet.replace(/\s+/g, '') || m.t.sig || m.t.id)
+    const prev = bySig.get(key)
+    if (!prev) {
+      bySig.set(key, m)
+      deduped.push(m)
+    } else if (m.score > prev.score) {
+      // แทนที่ตัวเดิมด้วยฉบับคะแนนสูงกว่า
+      const i = deduped.indexOf(prev)
+      if (i !== -1) deduped[i] = m
+      bySig.set(key, m)
+    }
+  }
+  matches.length = 0
+  matches.push(...deduped)
+
   // ── 2. Facet filter predicates ──
   const passes = (m, skip) => {
     const t = m.t
@@ -133,7 +156,13 @@ export function runSearch(query, filters = {}) {
     return b.score - a.score
   })
 
-  const hits = filtered.slice(0, MAX_HITS).map((m) => ({
+  // ── 5. แบ่งหน้า (Bug #16) ──
+  const total = filtered.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(Math.max(1, page | 0), totalPages)
+  const start = (safePage - 1) * PAGE_SIZE
+
+  const hits = filtered.slice(start, start + PAGE_SIZE).map((m) => ({
     teachingId: m.t.id,
     deity: m.t.deity,
     temple: m.t.temple,
@@ -148,5 +177,5 @@ export function runSearch(query, filters = {}) {
     matchedField: m.field,
   }))
 
-  return { hits, total: filtered.length, facets }
+  return { hits, total, facets, page: safePage, pageSize: PAGE_SIZE, totalPages }
 }

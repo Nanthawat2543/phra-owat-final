@@ -18,11 +18,26 @@ interface SearchResponse {
   hits: SearchHit[]
   total: number
   facets: Record<FacetKey, [string, number][]>
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
 // Cache ผลค้นหาต่อชุดพารามิเตอร์ (module scope — อยู่ตลอด session)
 // ทำให้กด "กลับหน้าค้นหา" แล้วผลเดิมเรนเดอร์ทันทีในเฟรมแรก ไม่มีจอว่าง/ภาพกระตุก
 const responseCache = new Map<string, SearchResponse>()
+
+const pageBtnStyle = (disabled: boolean): CSSProperties => ({
+  padding: '9px 18px',
+  borderRadius: 999,
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  border: '1px solid rgba(200,150,70,0.35)',
+  background: disabled ? 'rgba(50,30,12,0.3)' : 'linear-gradient(180deg, rgba(60,36,14,0.7), rgba(40,24,9,0.7))',
+  color: disabled ? 'rgba(199,154,82,0.4)' : '#e6c890',
+  fontFamily: "'Sarabun', sans-serif",
+  fontWeight: 600,
+  fontSize: 14.5,
+})
 
 const chipBase: CSSProperties = {
   display: 'flex',
@@ -284,18 +299,28 @@ export default function Search() {
   const fTemple = searchParams.get('temple') || ''
   const fCategory = searchParams.get('category') || ''
   const fYear = searchParams.get('year') || ''
+  const fPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
 
   // คีย์ประจำชุดพารามิเตอร์ค้นหา — ใช้เป็น key ของ response cache
-  const paramsKey = JSON.stringify([urlQ.trim(), fDeity, fTemple, fCategory, fYear])
+  const paramsKey = JSON.stringify([urlQ.trim(), fDeity, fTemple, fCategory, fYear, fPage])
 
   // เรนเดอร์ผลจาก cache ได้ทันทีตั้งแต่เฟรมแรก (กันภาพกระตุกตอนกด "กลับหน้าค้นหา")
   const [input, setInput] = useState(urlQ)
   const [data, setData] = useState<SearchResponse | null>(() => responseCache.get(paramsKey) ?? null)
   const [loading, setLoading] = useState(false)
+  const [showTop, setShowTop] = useState(false)
 
   useEffect(() => {
     setInput(urlQ)
   }, [urlQ])
+
+  // แสดงปุ่มขึ้นบนสุดเมื่อเลื่อนลงพอสมควร (Bug #15)
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 600)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const hasAnyFilter = !!(fDeity || fTemple || fCategory || fYear)
   const hasCriteria = !!urlQ.trim() || hasAnyFilter
@@ -317,6 +342,7 @@ export default function Search() {
     if (fTemple) params.set('temple', fTemple)
     if (fCategory) params.set('category', fCategory)
     if (fYear) params.set('year', fYear)
+    if (fPage > 1) params.set('page', String(fPage))
     fetch(`/api/search?${params}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((d: SearchResponse) => {
@@ -352,7 +378,18 @@ export default function Search() {
       if (v) next.set(k, v)
       else next.delete(k)
     }
+    // เปลี่ยนคำค้น/ตัวกรอง → กลับหน้า 1 เสมอ
+    next.delete('page')
     setSearchParams(next)
+  }
+
+  // เปลี่ยนหน้าผลลัพธ์ (Bug #16) + เลื่อนขึ้นบนสุด
+  const goToPage = (p: number) => {
+    const next = new URLSearchParams(searchParams)
+    if (p > 1) next.set('page', String(p))
+    else next.delete('page')
+    setSearchParams(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const submit = () => updateParams({ q: input.trim() })
@@ -513,7 +550,8 @@ export default function Search() {
         {hasCriteria && !loading && data && data.hits.length > 0 && (
           <>
             <p style={{ color: '#b08a4c', fontSize: 14, margin: '0 0 18px' }}>
-              พบ {data.total} รายการ{data.total > data.hits.length ? ` (แสดง ${data.hits.length})` : ''}
+              พบ {data.total} รายการ
+              {data.totalPages > 1 && ` · หน้า ${data.page}/${data.totalPages}`}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {data.hits.map((hit, i) => (
@@ -557,9 +595,65 @@ export default function Search() {
                 </button>
               ))}
             </div>
+
+            {/* แบ่งหน้า (Bug #16) */}
+            {data.totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 28 }}>
+                <button
+                  onClick={() => goToPage(data.page - 1)}
+                  disabled={data.page <= 1}
+                  className="ow-page-btn"
+                  style={pageBtnStyle(data.page <= 1)}
+                >
+                  ← ก่อนหน้า
+                </button>
+                <span style={{ fontSize: 14, color: '#cdb085', minWidth: 90, textAlign: 'center' }}>
+                  หน้า {data.page} / {data.totalPages}
+                </span>
+                <button
+                  onClick={() => goToPage(data.page + 1)}
+                  disabled={data.page >= data.totalPages}
+                  className="ow-page-btn"
+                  style={pageBtnStyle(data.page >= data.totalPages)}
+                >
+                  ถัดไป →
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>
+
+      {/* ปุ่มขึ้นบนสุด (Bug #15) */}
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="กลับขึ้นบนสุด"
+          className="ow-scrolltop"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 30,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            cursor: 'pointer',
+            border: '1px solid rgba(245,158,11,0.4)',
+            background: 'linear-gradient(180deg, rgba(180,83,9,0.92), rgba(120,60,10,0.92))',
+            color: '#ffe9c2',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
