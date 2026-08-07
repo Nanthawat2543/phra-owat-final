@@ -54,10 +54,29 @@ export default function FullText() {
   const textColor = light ? '#4a3618' : '#dcc296'
 
   // Split the full teaching content into display paragraphs.
-  const paragraphs = (teaching?.content_th || '')
+  // ตัดบทเกริ่นหัวเรื่อง (พระนาม/สถานที่/วันที่/บทขอประทาน) ที่ซ้ำกับกรอบหัวด้านบนออก
+  // — เฉพาะบรรทัดต้นๆ เท่านั้น พอเจอเนื้อหาจริงก็คงไว้ทั้งหมด (Bug #19)
+  const rawParas = (teaching?.content_th || '')
     .split(/\n+/)
     .map((s) => stripMarkdown(s))
     .filter(Boolean)
+
+  const deity = (teaching?.deity_th || '').trim()
+  const isPreamble = (s: string) => {
+    const t = s.trim()
+    if (t.startsWith('พระโอวาท')) return true
+    if (deity && t.includes(deity)) return true
+    if (/^ณ\s/.test(t)) return true
+    if (/^ประทาน(ไว้)?เนื่อง/.test(t)) return true
+    if (/สาธุชน.*ขอประทาน/.test(t)) return true
+    if (/^วัน(จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์)ที่/.test(t)) return true
+    if (/พ\.ศ\.|พุทธศักราช/.test(t)) return true
+    return false
+  }
+  let start = 0
+  while (start < rawParas.length && isPreamble(rawParas[start])) start++
+  // กันเผลอตัดทั้งฉบับ (ถ้าบังเอิญเข้าเงื่อนไขหมด) — ถ้าตัดจนเหลือน้อยเกินไปใช้ของเดิม
+  const paragraphs = rawParas.length - start >= 2 ? rawParas.slice(start) : rawParas
 
   return (
     <div

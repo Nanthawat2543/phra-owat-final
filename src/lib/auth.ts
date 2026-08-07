@@ -13,19 +13,30 @@ export function useAuth() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : { user: null }))
-      .then((d) => {
-        if (!cancelled) setUser(d.user ?? null)
-      })
-      .catch(() => {
-        if (!cancelled) setUser(null)
-      })
-      .finally(() => {
-        if (!cancelled) setChecking(false)
-      })
+    const refresh = () =>
+      fetch('/api/auth/me', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : { user: null }))
+        .then((d) => {
+          if (!cancelled) setUser(d.user ?? null)
+        })
+        .catch(() => {
+          if (!cancelled) setUser(null)
+        })
+        .finally(() => {
+          if (!cancelled) setChecking(false)
+        })
+
+    refresh()
+
+    // Bug #18: หลัง logout แล้วกด back เบราว์เซอร์คืนหน้าจาก bfcache (ไม่ remount)
+    // ทำให้ UI ยังโชว์สถานะล็อกอินค้าง — เช็คสถานะใหม่เมื่อหน้าโผล่จาก cache
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) refresh()
+    }
+    window.addEventListener('pageshow', onPageShow)
     return () => {
       cancelled = true
+      window.removeEventListener('pageshow', onPageShow)
     }
   }, [])
 

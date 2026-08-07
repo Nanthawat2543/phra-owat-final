@@ -1,5 +1,5 @@
 // POST /api/auth/login  { email, password } → sets httpOnly session cookie
-import { checkCredentials, signSession, sessionCookie, readJsonBody } from '../_lib/auth.js'
+import { authenticate, signSession, sessionCookie, readJsonBody } from '../_lib/auth.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     return
   }
 
-  const user = checkCredentials(body.email, body.password)
+  const user = await authenticate(body.email, body.password)
   if (!user) {
     res.status(401).json({ error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' })
     return
