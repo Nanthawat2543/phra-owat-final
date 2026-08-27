@@ -12,3 +12,4 @@ preview-dist
 .vercel
 .env
 .env*.local
+migration-report.json
