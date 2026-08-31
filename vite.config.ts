@@ -17,7 +17,7 @@ function apiDevServer(): Plugin {
   }
 
   // ver2 — ทางเข้าเดียว ตารางเส้นทางอยู่ใน src/api/v1/router.ts
-  const V1_ENTRY = './api/v1/[...path].ts'
+  const V1_ENTRY = './api/v1/router.ts'
 
   function makeMiddleware(loadV1: ((file: string) => Promise<Record<string, never>>) | null) {
     const middleware: Connect.NextHandleFunction = async (req, res, next) => {

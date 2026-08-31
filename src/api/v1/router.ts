@@ -45,11 +45,24 @@ const DYNAMIC_ROUTES: { pattern: RegExp; params: string[]; route: Route }[] = [
   { pattern: /^teachings\/([^/]+)$/, params: ['id'], route: teachingsRead },
 ]
 
-/** path ที่เหลือหลังตัด /api/v1/ ออก เช่น "teachings/facets" */
-export function normalizePath(url: string): string {
-  return url
+/**
+ * path ที่เหลือหลังตัด /api/v1/ ออก เช่น "teachings/facets"
+ *
+ * บน Vercel คำขอถูก rewrite มาที่ไฟล์เดียว แล้วส่ง path เดิมมาทาง query
+ * (ดู vercel.json — การจับ path หลายชั้นด้วยชื่อไฟล์อย่างเดียวใช้ไม่ได้
+ *  /api/v1/auth/me จะกลายเป็น 404 ของ Vercel ไปเลย)
+ * รันในเครื่องผ่าน vite ไม่มี rewrite จึงอ่านจาก url เอง
+ */
+export function normalizePath(req: ApiRequest): string {
+  const fromQuery = req.query?.path
+  const raw = fromQuery
+    ? (Array.isArray(fromQuery) ? fromQuery.join('/') : String(fromQuery))
+    : (req.url || '')
+
+  return raw
     .split('?')[0]
-    .replace(/^\/api\/v1\/?/, '')
+    .replace(/^\/?api\/v1\/?/, '')
+    .replace(/^\/+/, '')
     .replace(/\/+$/, '')
 }
 
@@ -58,7 +71,7 @@ export function normalizePath(url: string): string {
  * ไม่มีเส้นทางไหนตรง ตอบ 404 ในรูปแบบเดียวกับข้อผิดพลาดอื่นทั้งหมด
  */
 export async function route(req: ApiRequest, res: ApiResponseWriter): Promise<void> {
-  const path = normalizePath(req.url || '')
+  const path = normalizePath(req)
 
   const exact = ROUTES[path]
   if (exact) return exact(req, res)
