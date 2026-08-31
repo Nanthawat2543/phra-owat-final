@@ -5,10 +5,10 @@
 
 import { allowMethods, cookie, handler, sendOk } from '../../../shared/http.js'
 import { authService } from '../../../services/AuthService.js'
-import { authConfig } from '../../../shared/config.js'
+import { SESSION_COOKIE } from '../../../shared/config.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET'])) return
 
-  sendOk(res, { user: await authService.currentUser(cookie(req, authConfig().cookieName)) })
+  sendOk(res, { user: await authService.currentUser(cookie(req, SESSION_COOKIE)) })
 })

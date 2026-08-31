@@ -6,13 +6,13 @@
 import { allowMethods, cookie, handler, param, readJson, sendOk } from '../../../shared/http.js'
 import { authService } from '../../../services/AuthService.js'
 import { memberService } from '../../../services/MemberService.js'
-import { authConfig } from '../../../shared/config.js'
+import { SESSION_COOKIE } from '../../../shared/config.js'
 import type { MemberStatus } from '../../../domain/member.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'PATCH'])) return
 
-  const session = authService.verifySession(cookie(req, authConfig().cookieName))
+  const session = authService.verifySession(cookie(req, SESSION_COOKIE))
 
   if (req.method === 'PATCH') {
     const { id, status } = await readJson<{ id?: string; status?: MemberStatus }>(req)

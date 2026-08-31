@@ -41,12 +41,20 @@ export function dbConfig(env: Env = currentEnv()) {
   }
 }
 
-export function authConfig() {
-  return {
-    secret: required('AUTH_SECRET'),
-    sessionDays: 7,
-    cookieName: 'ow_session',
-  }
+/** ชื่อคุกกี้ที่เก็บสถานะการเข้าใช้งาน */
+export const SESSION_COOKIE = 'ow_session'
+
+/** อายุของสถานะการเข้าใช้งาน (วัน) */
+export const SESSION_DAYS = 7
+
+/**
+ * กุญแจลงลายเซ็น token — เรียกเฉพาะตอนต้องลงลายเซ็นหรือตรวจลายเซ็นจริงๆ
+ *
+ * แยกออกจากชื่อคุกกี้ เพราะแค่ "อ่านว่ามีคุกกี้ไหม" ไม่ควรพังทั้งปลายทาง
+ * เมื่อยังไม่ได้ตั้งค่ากุญแจ (ผู้ที่ยังไม่เข้าสู่ระบบต้องได้คำตอบปกติ)
+ */
+export function authSecret(): string {
+  return required('AUTH_SECRET')
 }
 
 /** จำนวนพระโอวาทที่เปิดรับได้ต่อวัน */

@@ -9,14 +9,14 @@
 import { allowMethods, cookie, handler, param, readJson, sendOk } from '../../../shared/http.js'
 import { authService } from '../../../services/AuthService.js'
 import { oracleService } from '../../../services/OracleService.js'
-import { authConfig } from '../../../shared/config.js'
+import { SESSION_COOKIE } from '../../../shared/config.js'
 import { AppError } from '../../../shared/result.js'
 import type { DrawOwner } from '../../../repositories/DrawRepository.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'POST'])) return
 
-  const session = authService.verifySession(cookie(req, authConfig().cookieName))
+  const session = authService.verifySession(cookie(req, SESSION_COOKIE))
   const body = req.method === 'POST' ? await readJson<{ question?: string; guestKey?: string }>(req) : {}
   const guestKey = String(body.guestKey ?? param(req, 'guestKey') ?? '').trim()
 

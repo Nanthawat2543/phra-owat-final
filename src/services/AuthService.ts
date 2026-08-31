@@ -20,7 +20,7 @@ import {
   type PublicMember,
   type RegisterInput,
 } from '../domain/member.js'
-import { authConfig } from '../shared/config.js'
+import { authSecret, SESSION_COOKIE, SESSION_DAYS } from '../shared/config.js'
 import { AppError } from '../shared/result.js'
 import { memberRepository, type MemberRepository } from '../repositories/MemberRepository.js'
 
@@ -114,17 +114,18 @@ export class AuthService {
   // (ไม่ใช้ session ฝั่งเซิร์ฟเวอร์ เพราะ serverless ไม่มีหน่วยความจำร่วมกัน)
 
   signSession(member: Pick<Member, 'id' | 'email' | 'name' | 'role'>): string {
-    const { secret, sessionDays } = authConfig()
     const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
     const payload: SessionPayload = {
       sub: member.id,
       email: member.email,
       name: member.name,
       role: member.role,
-      exp: Math.floor(Date.now() / 1000) + sessionDays * 86400,
+      exp: Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400,
     }
     const body = b64url(JSON.stringify(payload))
-    const signature = createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url')
+    const signature = createHmac('sha256', authSecret())
+      .update(`${header}.${body}`)
+      .digest('base64url')
     return `${header}.${body}.${signature}`
   }
 
@@ -134,7 +135,7 @@ export class AuthService {
     if (parts.length !== 3) return null
 
     const [header, body, signature] = parts
-    const expected = createHmac('sha256', authConfig().secret)
+    const expected = createHmac('sha256', authSecret())
       .update(`${header}.${body}`)
       .digest('base64url')
     if (!constantTimeEquals(signature, expected)) return null
@@ -150,11 +151,10 @@ export class AuthService {
 
   /** คุกกี้สำหรับตั้ง/ล้างสถานะการเข้าใช้งาน */
   sessionCookie(token: string, { clear = false } = {}): string {
-    const { cookieName, sessionDays } = authConfig()
     const secure = process.env.VERCEL ? '; Secure' : ''
     const base = `Path=/; HttpOnly; SameSite=Lax${secure}`
-    if (clear) return `${cookieName}=; ${base}; Max-Age=0`
-    return `${cookieName}=${encodeURIComponent(token)}; ${base}; Max-Age=${sessionDays * 86400}`
+    if (clear) return `${SESSION_COOKIE}=; ${base}; Max-Age=0`
+    return `${SESSION_COOKIE}=${encodeURIComponent(token)}; ${base}; Max-Age=${SESSION_DAYS * 86400}`
   }
 }
 
