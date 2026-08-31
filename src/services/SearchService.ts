@@ -56,13 +56,36 @@ interface Match {
   field: SearchHit['matchedField']
 }
 
+export interface SearchOptions {
+  /**
+   * รวมผลลัพธ์ที่ "ท่อนที่ยกมาแสดง" ตรงกันให้เหลือรายการเดียว
+   *
+   * ver1 ทำแบบนี้เสมอ แต่ในคลังจริงมี 182 กลุ่มที่ท่อนแรกเหมือนกัน
+   * ทั้งที่เป็นพระโอวาทคนละฉบับ (มักเป็นคำขึ้นต้นแบบเดียวกัน)
+   * เปิดไว้แล้วพระโอวาท 251 ฉบับหายจากรายการทั้งที่ไม่ได้ซ้ำจริง
+   *
+   * ver2 จึงปิดไว้ และกันซ้ำที่ระดับ "ฉบับ" แทน (ดูจากลายเซ็นเนื้อหาทั้งฉบับ
+   * ตอนย้ายข้อมูล ตรวจสอบย้อนหลังได้ ผู้ดูแลยกเลิกเครื่องหมายได้)
+   *
+   * เปิดเป็น true เฉพาะตอนเทียบผลกับ ver1 (npm run check:search)
+   */
+  mergeIdenticalSnippets?: boolean
+}
+
 export class SearchService {
-  constructor(private readonly teachings: TeachingRepository = teachingRepository) {}
+  constructor(
+    private readonly teachings: TeachingRepository = teachingRepository,
+    private readonly options: SearchOptions = {},
+  ) {}
+
+  private dedupe(matches: Match[]): Match[] {
+    return this.options.mergeIdenticalSnippets ? mergeByVisibleText(matches) : matches
+  }
 
   async search(query: string, filters: SearchFilters = {}, page = 1): Promise<SearchResult> {
     const raw = (query || '').trim()
     const matches = raw ? await this.matchQuery(raw) : await this.matchAll()
-    const deduped = dedupeByVisibleText(matches)
+    const deduped = this.dedupe(matches)
 
     const facets = aggregateFacets(deduped, filters)
     const filtered = deduped.filter((m) => passesFilters(m, filters, null))
@@ -87,7 +110,7 @@ export class SearchService {
   async facets(query = '', filters: SearchFilters = {}): Promise<FacetCounts> {
     const raw = query.trim()
     const matches = raw ? await this.matchQuery(raw) : await this.matchAll()
-    return aggregateFacets(dedupeByVisibleText(matches), filters)
+    return aggregateFacets(this.dedupe(matches), filters)
   }
 
   // ── โหมดเปิดดูทั้งหมด (ยังไม่พิมพ์คำค้น) ──
@@ -147,17 +170,30 @@ export class SearchService {
 
 // ── ฟังก์ชันช่วย ──
 
-/** ท่อนที่คะแนนสูงสุดของฉบับหนึ่ง (null = ไม่มีท่อนไหนตรงเลย) */
+/**
+ * ท่อนที่คะแนนสูงสุดของฉบับหนึ่ง (null = ไม่มีท่อนไหนตรงเลย)
+ *
+ * เลือกจากท่อนที่ "ยกมาแสดงเดี่ยวๆ ได้" ก่อนเสมอ ต่อให้ท่อนเศษสั้นๆ
+ * จะได้คะแนนสูงกว่า เพราะยกเศษข้อความมาโชว์แล้วผู้อ่านไม่ได้ใจความ
+ * ใช้ท่อนเศษก็ต่อเมื่อไม่มีท่อนที่แสดงได้ตรงคำค้นเลย (ดีกว่าหาไม่เจอ)
+ */
 function bestPassage(
   row: TeachingWithPassages,
   terms: string[],
   rawLower: string,
 ): Pick<Match, 'passageIndex' | 'snippet' | 'score' | 'matched'> | null {
   let best: Pick<Match, 'passageIndex' | 'snippet' | 'score' | 'matched'> | null = null
+  let bestQuotable = false
+
   for (const p of row.passages) {
     const { score, matched } = scorePassage(p.text.toLowerCase(), terms, rawLower)
-    if (score > (best?.score ?? 0)) {
+    if (score <= 0) continue
+    const quotable = p.isQuotable !== false
+    const better =
+      best === null || (quotable && !bestQuotable) || (quotable === bestQuotable && score > best.score)
+    if (better) {
       best = { passageIndex: p.idx, snippet: p.text, score, matched }
+      bestQuotable = quotable
     }
   }
   return best
@@ -169,13 +205,12 @@ function matchesDeity(t: Teaching, terms: string[]): boolean {
 }
 
 /**
- * รวมรายการที่ผู้อ่านเห็นเป็นข้อความเดียวกันให้เหลือรายการเดียว
- *
- * สอง snippet ที่ต่างกันแค่ `>` หรือ `**` แสดงผลออกมาเหมือนกันทุกตัวอักษร
- * ถ้าไม่รวม ผู้ใช้จะเห็นผลค้นหาซ้ำกันติดกัน (ปัญหาที่ทีมแจ้งมาใน ver1)
+ * รวมรายการที่ผู้อ่านเห็นเป็นข้อความเดียวกันให้เหลือรายการเดียว (กติกาของ ver1)
  * เก็บฉบับที่คะแนนสูงกว่าไว้
+ *
+ * ⚠️ ใช้เฉพาะตอนเทียบผลกับ ver1 — ดูเหตุผลที่ SearchOptions
  */
-function dedupeByVisibleText(matches: Match[]): Match[] {
+function mergeByVisibleText(matches: Match[]): Match[] {
   const byKey = new Map<string, Match>()
   const out: Match[] = []
   for (const m of matches) {

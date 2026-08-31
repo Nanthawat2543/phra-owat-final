@@ -116,7 +116,9 @@ const fakeRepository = {
 
 // ── เทียบผล ──
 const QUERIES = ['เมตตา', 'ปัญญา', 'กำลังใจ', 'ครอบครัว', 'บำเพ็ญ', 'อภัย', '']
-const service = new SearchService(fakeRepository)
+// เปิดโหมดรวมท่อนที่แสดงผลเหมือนกัน เพื่อเทียบ "เครื่องให้คะแนน" กับ ver1 ให้ตรงกันเป๊ะ
+// (ตอนใช้งานจริง ver2 ปิดไว้ ดูเหตุผลที่ SearchOptions ใน SearchService)
+const service = new SearchService(fakeRepository, { mergeIdenticalSnippets: true })
 
 let failed = 0
 

@@ -15,8 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
-import { splitIntoParagraphs, displayKey } from '../api/_lib/passages.js'
-import { MIN_QUOTE_LENGTH, MAX_QUOTE_LENGTH } from '../api/_lib/passages.js'
+import { splitIntoParagraphs, splitIntoSegments, isQuotable, displayKey } from '../api/_lib/passages.js'
 
 const args = {}
 const argv = process.argv.slice(2)
@@ -77,10 +76,15 @@ const rows = teachings.map((t) => {
   // จับซ้ำจากเนื้อหาที่ตัดช่องว่างและรูปแบบออกแล้ว — สองฉบับที่ต่างกันแค่
   // ช่องว่างหรือสัญลักษณ์จัดรูปแบบ ผู้อ่านเห็นเป็นเนื้อหาเดียวกัน
   const dedupeHash = sha256(normalizeForCompare(content))
+  // เก็บทุกท่อนเพื่อให้ค้นเจอครบทุกคำในต้นฉบับ
+  // ท่อนที่ "ยกมาแสดงเดี่ยวๆ ได้" คือชุดเดียวกับที่ ver1 ใช้ (44,915 ท่อน)
+  // การสุ่มเปิดรับใช้เฉพาะชุดนั้น คุณภาพจึงเท่าเดิม
+  const segments = splitIntoSegments(content)
   const paragraphs = splitIntoParagraphs(content)
 
-  if (byHash.has(dedupeHash)) problems.duplicates.push({ id: t.id, sameAs: byHash.get(dedupeHash) })
-  else byHash.set(dedupeHash, t.id)
+  // จัดกลุ่มฉบับที่เนื้อหาเหมือนกัน — เลือกตัวหลักทีหลังเมื่อรู้จำนวนท่อนของทุกฉบับแล้ว
+  if (byHash.has(dedupeHash)) byHash.get(dedupeHash).push(t.id)
+  else byHash.set(dedupeHash, [t.id])
 
   if (!t.date) problems.noDate.push(t.id)
   else if (new Date(t.date).getFullYear() > thisYear) problems.futureDate.push({ id: t.id, date: t.date })
@@ -103,20 +107,55 @@ const rows = teachings.map((t) => {
     category: (t.category || '').trim() || null,
     taught_on: t.date || null,
     location_note: t.location_th || null,
-    passages: paragraphs.map((text, idx) => ({
+    quotableCount: paragraphs.length,
+    passages: segments.map((text, idx) => ({
       idx, text,
       display_key: displayKey(text),
       char_length: text.length,
-      is_quotable: text.length >= MIN_QUOTE_LENGTH && text.length <= MAX_QUOTE_LENGTH,
+      is_quotable: isQuotable(text),
     })),
   }
 })
 
+// ── เลือก "ตัวหลัก" ของแต่ละกลุ่มเนื้อหาซ้ำ ──
+//
+// เนื้อหาชุดเดียวกันมีหลายฉบับในคลัง ต่างกันแค่ช่องว่างและสัญลักษณ์จัดรูปแบบ
+// แต่การแตกท่อนขึ้นกับช่องว่าง ฉบับหนึ่งจึงอาจแตกได้ 82 ท่อน อีกฉบับได้ 8 ท่อน
+// หรือ 0 ท่อน
+//
+// ถ้าเลือกตัวหลักตามลำดับที่เจอ (แบบเดิม) มีโอกาสไปเก็บฉบับที่แตกท่อนไม่ได้ไว้
+// แล้วเนื้อหานั้นหายจากการค้นหาทั้งที่ยังอยู่ในคลัง — เจอจริง 1 ฉบับหายสนิท
+// และอีกหลายฉบับหาเจอไม่ครบ
+//
+// จึงเลือกฉบับที่ "ค้นเจอได้มากที่สุด" — วัดจากจำนวนตัวอักษรรวมในท่อนที่แตกได้
+// เพราะคำที่อยู่นอกท่อนคือคำที่ค้นไม่เจอ เท่ากันจึงดูจำนวนท่อนและความยาวเนื้อหา
+// แล้วยึดลำดับที่เจอเป็นตัวตัดสินสุดท้าย (รันกี่ครั้งก็ได้ผลเดิม)
+//
+// ⚠️ ทุกฉบับยังเข้าฐานข้อมูลครบ ตัวที่ไม่ได้เป็นตัวหลักแค่ถูกทำเครื่องหมายว่าซ้ำ
+const rowByLegacy = new Map(rows.map((r) => [r.legacy_id, r]))
+const coverage = (r) => r.passages.reduce((sum, p) => sum + p.char_length, 0)
+const quotable = (r) => r.quotableCount
+for (const ids of byHash.values()) {
+  if (ids.length < 2) continue
+  const ranked = [...ids].sort((a, b) => {
+    const ra = rowByLegacy.get(a)
+    const rb = rowByLegacy.get(b)
+    if (coverage(rb) !== coverage(ra)) return coverage(rb) - coverage(ra)
+    if (quotable(rb) !== quotable(ra)) return quotable(rb) - quotable(ra)
+    if (rb.content.length !== ra.content.length) return rb.content.length - ra.content.length
+    return ids.indexOf(a) - ids.indexOf(b)
+  })
+  const [primary, ...rest] = ranked
+  for (const id of rest) problems.duplicates.push({ id, sameAs: primary })
+}
+
 // ── สรุปผลตรวจ ──
 const totalPassages = rows.reduce((a, r) => a + r.passages.length, 0)
+const totalQuotable = rows.reduce((a, r) => a + r.quotableCount, 0)
 console.log('═══ ตรวจข้อมูลก่อนย้าย ═══')
 console.log('  พระโอวาททั้งหมด   :', rows.length, 'ฉบับ')
-console.log('  ท่อนที่แตกได้      :', totalPassages.toLocaleString(), 'ท่อน')
+console.log('  ท่อนที่ค้นได้      :', totalPassages.toLocaleString(), 'ท่อน')
+console.log('  ในนั้นยกมาแสดงได้  :', totalQuotable.toLocaleString(), 'ท่อน (ใช้สุ่มเปิดรับ)')
 console.log('  องค์ผู้ประทาน      :', new Set(rows.map((r) => r.deity).filter(Boolean)).size)
 console.log('  สถานธรรม (หลังล้าง):', new Set(rows.map((r) => r.temple).filter(Boolean)).size)
 console.log('  ชั้นเรียน          :', new Set(rows.map((r) => r.category).filter(Boolean)).size)
@@ -152,7 +191,11 @@ if (!url || !key) {
 }
 
 const { createClient } = await import('@supabase/supabase-js')
-const db = createClient(url, key, { auth: { persistSession: false } })
+// Node ต่ำกว่า 22 ไม่มี WebSocket ในตัว แต่ supabase-js สร้างตัวเชื่อม realtime เสมอ
+const { default: WebSocketImpl } = await import('ws')
+const realtimeOptions =
+  typeof globalThis.WebSocket === 'undefined' ? { realtime: { transport: WebSocketImpl } } : {}
+const db = createClient(url, key, { auth: { persistSession: false }, ...realtimeOptions })
 
 // ตารางอ้างอิง: สร้างครั้งเดียวแล้วอ้างด้วย id
 async function upsertLookup(table, names, extra = () => ({})) {
