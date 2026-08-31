@@ -13,3 +13,6 @@ preview-dist
 .env
 .env*.local
 migration-report.json
+
+# ไฟล์ชั่วคราวจากสคริปต์เทียบผลค้นหา
+scripts/.compare-search.mjs

@@ -20,6 +20,11 @@ export interface Teaching {
   country: string
   category: string | null // ชั้นเรียน
   taughtOn: string | null // YYYY-MM-DD (null = ไม่ระบุวันที่)
+  /**
+   * ข้อความสถานที่ดิบจากต้นฉบับ — เก็บไว้เพราะบางฉบับจับคู่กับตารางสถานธรรมไม่ได้
+   * ใช้เป็นทางค้นสำรอง ไม่ใช้แสดงผล
+   */
+  locationNote: string | null
   status: TeachingStatus
   isDuplicate: boolean // เนื้อหาซ้ำกับฉบับอื่น (เก็บไว้ ไม่ลบ)
 }
@@ -61,6 +66,29 @@ export function toComparableText(text: string): string {
     .replace(/[*>#\\]/g, '') // สัญลักษณ์จัดรูปแบบ
     .replace(/-{2,}/g, '') // เส้นคั่น
     .replace(/\s+/g, '')
+}
+
+/**
+ * กุญแจเปรียบเทียบสำหรับ "ท่อนเดียว" (snippet)
+ *
+ * ต่างจาก toComparableText ที่ใช้กับเนื้อหาเต็มฉบับ: ท่อนเดียวมี `#` หรือ `>`
+ * ได้แค่ต้นข้อความ ถ้าล้างทุกตำแหน่งจะไปรวมท่อนที่ผู้อ่านเห็นเป็นคนละข้อความ
+ * เข้าด้วยกัน แล้วผลค้นหาหายไปโดยไม่ควรหาย
+ *
+ * กติกาที่นี่ตรงกับ stripMarkdown ของหน้าเว็บ (src/lib/format.ts) ทุกข้อ
+ * เพราะสองท่อนจะ "ซ้ำ" ก็ต่อเมื่อแสดงผลออกมาเหมือนกันจริง
+ */
+export function toSnippetKey(text: string): string {
+  return String(text || '')
+    .replace(/^#{1,9}\s*/, '')
+    .replace(/^>\s*/, '')
+    .replace(/\*+/g, '')
+    .replace(/\{[^}]*(?:width|height)=[^}]*\}/gi, '')
+    .replace(/\\-/g, '-')
+    .replace(/(?:^|\s)-{2,}(?:\s|$)/g, ' ')
+    .replace(/\\(?=[.\s-]|$)/g, '')
+    .replace(/\s+/g, '')
+    .trim()
 }
 
 /**

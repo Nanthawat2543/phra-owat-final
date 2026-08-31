@@ -30,8 +30,11 @@ export function toPublicMember(m: Member): PublicMember {
   return { id: m.id, email: m.email, name: m.name, role: m.role }
 }
 
-/** เข้าสู่ระบบได้เฉพาะสมาชิกที่อนุมัติแล้ว */
-export function canSignIn(status: MemberStatus): boolean {
+/**
+ * เข้าสู่ระบบได้เฉพาะสมาชิกที่อนุมัติแล้ว
+ * ประกาศเป็น type guard เพื่อให้ผู้เรียกรู้ว่าอีกทางคือสถานะที่มีเหตุผลกำกับเสมอ
+ */
+export function canSignIn(status: MemberStatus): status is 'active' {
   return status === 'active'
 }
 
