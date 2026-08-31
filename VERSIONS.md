@@ -57,8 +57,8 @@
 | ชั้น | Branch | เว็บ | ใช้ทำอะไร | สถานะ |
 |---|---|---|---|---|
 | จริง | `main` | owat.fycdth.com | ผู้ใช้จริงเข้าใช้งาน | ✅ ใช้งานได้ |
-| ทดสอบ | `test` | test-owat.fycdth.com | ทีมทดสอบก่อนขึ้นจริง | ⏳ รอตั้ง DNS |
-| พัฒนา | `dev` | dev-owat.fycdth.com | พัฒนา ver2 | ⏳ รอตั้ง DNS |
+| ทดสอบ | `test` | test-owat.fycdth.com | ทีมทดสอบก่อนขึ้นจริง | ✅ เปิดได้ (ต้องล็อกอิน Vercel) |
+| พัฒนา | `dev` | dev-owat.fycdth.com | พัฒนา ver2 | ✅ เปิดได้ (ต้องล็อกอิน Vercel) |
 
 **ฐานข้อมูลแยกขาดจากกันทั้ง 3 ชั้น** — แก้อะไรที่ dev ไม่กระทบข้อมูลจริง
 
@@ -68,11 +68,20 @@
 - พัฒนา ver2 → ทำบน `dev`
 - push branch ไหน เว็บของชั้นนั้นอัปเดตเอง **ไม่กระทบชั้นอื่น**
 
-### DNS ที่ต้องตั้งเพิ่ม (ที่ Cloudflare)
+### DNS ที่ Cloudflare (ตั้งแล้ว 31 ส.ค. 2569)
 | Type | Name | Value | Proxy |
 |---|---|---|---|
 | A | `dev-owat` | `76.76.21.21` | ปิด (DNS only) |
 | A | `test-owat` | `76.76.21.21` | ปิด (DNS only) |
+
+ต้องปิด Proxy (เมฆสีเทา) เสมอ ไม่งั้น Vercel ออกใบรับรอง SSL ให้ไม่ได้
+
+### ค้างอยู่: Deployment Protection
+`dev-owat` และ `test-owat` เป็น Preview ของ Vercel จึงถูก Vercel Authentication กั้นไว้ —
+คนที่ไม่มีบัญชี Vercel เปิดแล้วเด้งไปหน้าล็อกอิน (ตอบ HTTP 302)
+ให้ทีมทดสอบเข้าได้ ต้องปิดที่ Vercel → phra-owat-new → Settings → Deployment Protection →
+Vercel Authentication → Disabled
+(`owat.fycdth.com` เป็น Production ไม่ถูกกั้นอยู่แล้ว)
 
 ---
 
