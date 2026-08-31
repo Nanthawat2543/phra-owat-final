@@ -4,7 +4,6 @@
       "includeFiles": "api/_data/**"
     },
     "api/v1/**/*.ts": {
-      "memory": 1024,
       "maxDuration": 15
     }
   }

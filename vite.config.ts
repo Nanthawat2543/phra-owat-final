@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin, type Connect, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -17,36 +16,15 @@ function apiDevServer(): Plugin {
     '/api/admin/members': './api/admin/members.js',
   }
 
-  /**
-   * ver2 — หาไฟล์ TypeScript ที่ตรงกับ path ตามกติกาเดียวกับ Vercel
-   *   /api/v1/teachings          → api/v1/teachings/index.ts
-   *   /api/v1/teachings/facets   → api/v1/teachings/facets.ts
-   *   /api/v1/teachings/<id>     → api/v1/teachings/[id].ts   (ไฟล์ตายตัวมาก่อนเสมอ)
-   */
-  function resolveV1(path: string): { file: string; params: Record<string, string> } | null {
-    const rel = path.replace(/^\/api\/v1\/?/, '').replace(/\/+$/, '')
-    if (!rel) return null
-    const segments = rel.split('/').map(decodeURIComponent)
-    const exact = `api/v1/${segments.join('/')}`
-
-    for (const candidate of [`${exact}.ts`, `${exact}/index.ts`]) {
-      if (existsSync(candidate)) return { file: `./${candidate}`, params: {} }
-    }
-
-    const parent = segments.slice(0, -1).join('/')
-    const dynamic = `api/v1/${parent ? `${parent}/` : ''}[id].ts`
-    if (existsSync(dynamic)) {
-      return { file: `./${dynamic}`, params: { id: segments[segments.length - 1] } }
-    }
-    return null
-  }
+  // ver2 — ทางเข้าเดียว ตารางเส้นทางอยู่ใน src/api/v1/router.ts
+  const V1_ENTRY = './api/v1/[...path].ts'
 
   function makeMiddleware(loadV1: ((file: string) => Promise<Record<string, never>>) | null) {
     const middleware: Connect.NextHandleFunction = async (req, res, next) => {
       const reqUrl = (req as { url?: string }).url || ''
       const path = reqUrl.split('?')[0]
 
-      const v1 = loadV1 && path.startsWith('/api/v1') ? resolveV1(path) : null
+      const v1 = loadV1 && path.startsWith('/api/v1') ? V1_ENTRY : null
       const legacy = legacyRoutes[path]
       if (!v1 && !legacy) return next()
 
@@ -65,11 +43,13 @@ function apiDevServer(): Plugin {
       try {
         if (v1 && loadV1) {
           // เติม query เอง เพราะ vite ไม่ได้แปลง url ให้เหมือน Vercel
+          // (ค่าที่มาจาก path ตัวแยกเส้นทางเติมให้เองอีกที)
           const search = new URLSearchParams(reqUrl.slice(reqUrl.indexOf('?') + 1))
-          const query = reqUrl.includes('?') ? Object.fromEntries(search.entries()) : {}
-          Object.assign(req, { query: { ...query, ...v1.params } })
+          Object.assign(req, {
+            query: reqUrl.includes('?') ? Object.fromEntries(search.entries()) : {},
+          })
 
-          const mod = (await loadV1(v1.file)) as unknown as {
+          const mod = (await loadV1(v1)) as unknown as {
             default: (req: unknown, res: unknown) => Promise<void>
           }
           await mod.default(req, shim)
