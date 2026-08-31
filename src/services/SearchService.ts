@@ -13,13 +13,13 @@ import {
   type FacetCounts,
   type FacetName,
   type SearchFilters,
-} from '../domain/search'
-import { toSnippetKey, type Teaching } from '../domain/teaching'
+} from '../domain/search.js'
+import { toSnippetKey, type Teaching } from '../domain/teaching.js'
 import {
   teachingRepository,
   type TeachingRepository,
   type TeachingWithPassages,
-} from '../repositories/TeachingRepository'
+} from '../repositories/TeachingRepository.js'
 
 /** หนึ่งรายการในผลค้นหา */
 export interface SearchHit {

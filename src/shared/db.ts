@@ -10,7 +10,7 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import WebSocketImpl from 'ws'
-import { dbConfig, currentEnv, type Env } from './config'
+import { dbConfig, currentEnv, type Env } from './config.js'
 
 /**
  * supabase-js สร้างตัวเชื่อม realtime ทุกครั้งที่สร้าง client แม้เราไม่ได้ใช้

@@ -5,10 +5,10 @@
  * ประโยชน์: เปลี่ยนวิธีเก็บข้อมูลภายหลังก็แก้แค่ไฟล์นี้ไฟล์เดียว
  */
 
-import { db } from '../shared/db'
-import { AppError } from '../shared/result'
-import type { Teaching, Passage } from '../domain/teaching'
-import { fetchAllRows } from './paginate'
+import { db } from '../shared/db.js'
+import { AppError } from '../shared/result.js'
+import type { Teaching, Passage } from '../domain/teaching.js'
+import { fetchAllRows } from './paginate.js'
 
 /** พระโอวาทหนึ่งฉบับพร้อมท่อนที่เกี่ยวข้องกับคำค้น */
 export interface TeachingWithPassages {

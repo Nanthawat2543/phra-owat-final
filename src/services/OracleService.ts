@@ -5,12 +5,12 @@
  * ver2 บังคับที่ฐานข้อมูล: เปิดรับแล้วในวันนี้ จะได้ท่อนเดิมกลับไปเสมอ
  */
 
-import { expandQueryTerms, scorePassage } from '../domain/search'
-import type { PassageWithSource } from '../domain/teaching'
-import { AppError } from '../shared/result'
-import { DAILY_DRAW_LIMIT } from '../shared/config'
-import { passageRepository, type PassageRepository } from '../repositories/PassageRepository'
-import { drawRepository, type DrawOwner, type DrawRepository } from '../repositories/DrawRepository'
+import { expandQueryTerms, scorePassage } from '../domain/search.js'
+import type { PassageWithSource } from '../domain/teaching.js'
+import { AppError } from '../shared/result.js'
+import { DAILY_DRAW_LIMIT } from '../shared/config.js'
+import { passageRepository, type PassageRepository } from '../repositories/PassageRepository.js'
+import { drawRepository, type DrawOwner, type DrawRepository } from '../repositories/DrawRepository.js'
 
 export interface DrawResult {
   passage: PassageWithSource

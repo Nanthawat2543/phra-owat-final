@@ -5,10 +5,10 @@
  * (ถ้าลืมตรวจที่ api สักที่เดียว ข้อมูลสมาชิกทั้งหมดจะหลุด)
  */
 
-import type { Member, MemberStatus } from '../domain/member'
-import { AppError } from '../shared/result'
-import { memberRepository, type MemberRepository } from '../repositories/MemberRepository'
-import type { SessionPayload } from './AuthService'
+import type { Member, MemberStatus } from '../domain/member.js'
+import { AppError } from '../shared/result.js'
+import { memberRepository, type MemberRepository } from '../repositories/MemberRepository.js'
+import type { SessionPayload } from './AuthService.js'
 
 /** ข้อมูลสมาชิกที่ผู้ดูแลเห็น — ไม่มีรหัสผ่านไม่ว่ารูปแบบใด */
 export interface MemberSummary {

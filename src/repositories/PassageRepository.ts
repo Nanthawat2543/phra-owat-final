@@ -5,9 +5,9 @@
  * ver2 แตกไว้ตอนย้ายข้อมูลแล้ว ที่นี่แค่หยิบมาใช้
  */
 
-import { db } from '../shared/db'
-import { AppError } from '../shared/result'
-import type { PassageWithSource } from '../domain/teaching'
+import { db } from '../shared/db.js'
+import { AppError } from '../shared/result.js'
+import type { PassageWithSource } from '../domain/teaching.js'
 
 interface PassageRow {
   id: string

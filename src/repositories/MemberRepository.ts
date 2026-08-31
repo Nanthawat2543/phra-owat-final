@@ -6,9 +6,9 @@
  * ver2 ย้ายมาอยู่ในฐานข้อมูล ปัญหานี้หายไปทั้งคลาส
  */
 
-import { db } from '../shared/db'
-import { AppError } from '../shared/result'
-import { normalizeEmail, type Member, type MemberStatus } from '../domain/member'
+import { db } from '../shared/db.js'
+import { AppError } from '../shared/result.js'
+import { normalizeEmail, type Member, type MemberStatus } from '../domain/member.js'
 
 interface MemberRow {
   id: string

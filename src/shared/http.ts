@@ -5,7 +5,7 @@
  * ตรรกะทั้งหมดอยู่ที่ service ห้ามเขียนกฎธุรกิจในไฟล์ api
  */
 
-import { fail, ok, AppError, STATUS_BY_CODE, type ApiMeta, type ApiResponse } from './result'
+import { fail, ok, AppError, STATUS_BY_CODE, type ApiMeta, type ApiResponse } from './result.js'
 
 // รูปแบบ request/response ขั้นต่ำที่เราใช้จริง — ประกาศเองเพื่อไม่ผูกกับ Vercel
 // (LINE OA / App ในอนาคตต่อผ่าน HTTP เหมือนกัน ไม่ต้องแก้ชั้นนี้)

@@ -5,8 +5,8 @@
  * เปลี่ยนเครื่องก็สุ่มใหม่ได้ ver2 ย้ายมาบังคับที่ฐานข้อมูล
  */
 
-import { db } from '../shared/db'
-import { AppError } from '../shared/result'
+import { db } from '../shared/db.js'
+import { AppError } from '../shared/result.js'
 
 export interface DrawOwner {
   memberId?: string | null

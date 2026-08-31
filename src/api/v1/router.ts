@@ -10,18 +10,18 @@
  * เพิ่มเส้นทางใหม่: สร้างไฟล์ใน routes/ แล้วมาเพิ่มหนึ่งบรรทัดใน ROUTES
  */
 
-import { fail } from '../../shared/result'
-import type { ApiRequest, ApiResponseWriter } from '../../shared/http'
+import { fail } from '../../shared/result.js'
+import type { ApiRequest, ApiResponseWriter } from '../../shared/http.js'
 
-import teachingsSearch from './routes/teachings-search'
-import teachingsFacets from './routes/teachings-facets'
-import teachingsRead from './routes/teachings-read'
-import drawsDaily from './routes/draws-daily'
-import authRegister from './routes/auth-register'
-import authLogin from './routes/auth-login'
-import authLogout from './routes/auth-logout'
-import authMe from './routes/auth-me'
-import adminMembers from './routes/admin-members'
+import teachingsSearch from './routes/teachings-search.js'
+import teachingsFacets from './routes/teachings-facets.js'
+import teachingsRead from './routes/teachings-read.js'
+import drawsDaily from './routes/draws-daily.js'
+import authRegister from './routes/auth-register.js'
+import authLogin from './routes/auth-login.js'
+import authLogout from './routes/auth-logout.js'
+import authMe from './routes/auth-me.js'
+import adminMembers from './routes/admin-members.js'
 
 type Route = (req: ApiRequest, res: ApiResponseWriter) => Promise<void>
 

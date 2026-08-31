@@ -2,8 +2,8 @@
 //
 // สำเร็จแล้วตั้งคุกกี้ httpOnly ให้ — หน้าเว็บไม่ต้องเก็บ token เอง
 
-import { allowMethods, handler, readJson, sendOk } from '../../../shared/http'
-import { authService } from '../../../services/AuthService'
+import { allowMethods, handler, readJson, sendOk } from '../../../shared/http.js'
+import { authService } from '../../../services/AuthService.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return

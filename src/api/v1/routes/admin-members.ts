@@ -3,11 +3,11 @@
 //
 // เฉพาะผู้ดูแลระบบ — ตรวจสิทธิ์ที่ชั้น service ไม่ใช่ที่นี่
 
-import { allowMethods, cookie, handler, param, readJson, sendOk } from '../../../shared/http'
-import { authService } from '../../../services/AuthService'
-import { memberService } from '../../../services/MemberService'
-import { authConfig } from '../../../shared/config'
-import type { MemberStatus } from '../../../domain/member'
+import { allowMethods, cookie, handler, param, readJson, sendOk } from '../../../shared/http.js'
+import { authService } from '../../../services/AuthService.js'
+import { memberService } from '../../../services/MemberService.js'
+import { authConfig } from '../../../shared/config.js'
+import type { MemberStatus } from '../../../domain/member.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET', 'PATCH'])) return

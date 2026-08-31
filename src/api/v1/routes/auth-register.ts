@@ -2,9 +2,9 @@
 //
 // สมัครแล้วสถานะเป็น "รอตรวจสอบ" ยังเข้าใช้งานไม่ได้จนกว่าผู้ดูแลจะอนุมัติ
 
-import { allowMethods, handler, readJson, sendOk } from '../../../shared/http'
-import { authService } from '../../../services/AuthService'
-import type { RegisterInput } from '../../../domain/member'
+import { allowMethods, handler, readJson, sendOk } from '../../../shared/http.js'
+import { authService } from '../../../services/AuthService.js'
+import type { RegisterInput } from '../../../domain/member.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['POST'])) return

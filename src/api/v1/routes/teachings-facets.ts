@@ -3,9 +3,9 @@
 // แยกจากปลายทางค้นหา เพราะหน้าเว็บเรียกตอนเปิดหน้าโดยยังไม่ค้นอะไร
 // จำนวนของแต่ละมิติคิดโดยข้ามฟิลเตอร์ของมิตินั้นเอง ผู้ใช้จึงเปลี่ยนตัวเลือกได้
 
-import { allowMethods, handler, param, sendOk } from '../../../shared/http'
-import { searchService } from '../../../services/SearchService'
-import type { SearchFilters } from '../../../domain/search'
+import { allowMethods, handler, param, sendOk } from '../../../shared/http.js'
+import { searchService } from '../../../services/SearchService.js'
+import type { SearchFilters } from '../../../domain/search.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET'])) return

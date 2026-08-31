@@ -6,9 +6,9 @@
  *    การล้างสัญลักษณ์จัดรูปแบบทำที่ฝั่งแสดงผลเท่านั้น และไม่เขียนกลับ
  */
 
-import type { Teaching } from '../domain/teaching'
-import { AppError } from '../shared/result'
-import { teachingRepository, type TeachingRepository } from '../repositories/TeachingRepository'
+import type { Teaching } from '../domain/teaching.js'
+import { AppError } from '../shared/result.js'
+import { teachingRepository, type TeachingRepository } from '../repositories/TeachingRepository.js'
 
 export class TeachingService {
   constructor(private readonly teachings: TeachingRepository = teachingRepository) {}

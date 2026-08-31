@@ -4,9 +4,9 @@
 // deity / temple / category / year   ฟิลเตอร์
 // page      หน้าที่ต้องการ (เริ่มที่ 1)
 
-import { allowMethods, handler, intParam, param, sendOk } from '../../../shared/http'
-import { searchService } from '../../../services/SearchService'
-import type { SearchFilters } from '../../../domain/search'
+import { allowMethods, handler, intParam, param, sendOk } from '../../../shared/http.js'
+import { searchService } from '../../../services/SearchService.js'
+import type { SearchFilters } from '../../../domain/search.js'
 
 export default handler(async (req, res) => {
   if (!allowMethods(req, res, ['GET'])) return

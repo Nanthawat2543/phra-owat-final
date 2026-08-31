@@ -19,10 +19,10 @@ import {
   type Member,
   type PublicMember,
   type RegisterInput,
-} from '../domain/member'
-import { authConfig } from '../shared/config'
-import { AppError } from '../shared/result'
-import { memberRepository, type MemberRepository } from '../repositories/MemberRepository'
+} from '../domain/member.js'
+import { authConfig } from '../shared/config.js'
+import { AppError } from '../shared/result.js'
+import { memberRepository, type MemberRepository } from '../repositories/MemberRepository.js'
 
 const BCRYPT_ROUNDS = 10
 
