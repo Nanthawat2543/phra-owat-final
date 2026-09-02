@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type Teaching } from '../lib/format'
 import { useAuth } from '../lib/auth'
+import { apiTeaching } from '../lib/api'
 import UserMenu from '../components/UserMenu'
 
 export default function FullText() {
@@ -33,8 +34,7 @@ export default function FullText() {
     }
     setLoading(true)
     setError(false)
-    fetch(`/api/owat?id=${encodeURIComponent(id)}`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    apiTeaching(id)
       .then((data: Teaching) => setTeaching(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false))

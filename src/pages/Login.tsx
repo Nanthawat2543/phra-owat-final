@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '../lib/auth'
+import { apiRegister, ApiError } from '../lib/api'
 
 const fieldStyle: CSSProperties = {
   width: '100%',
@@ -22,6 +23,9 @@ const labelStyle: CSSProperties = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  // ถูกพามาจากหน้าที่ต้องเข้าสู่ระบบ — เข้าเสร็จแล้วพากลับไปที่เดิม
+  const next = searchParams.get('next')
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [showPw, setShowPw] = useState(false)
   const [email, setEmail] = useState('')
@@ -44,29 +48,23 @@ export default function Login() {
       // สมัครสมาชิก → บันทึกใบสมัครลงฐานข้อมูล (สถานะรออนุมัติ)
       setSubmitting(true)
       try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: fullName.trim(),
-            dharmaTitle: dharmaTitle.trim(),
-            temple: temple.trim(),
-            email: email.trim(),
-            password,
-            confirmPassword,
-          }),
+        const text = await apiRegister({
+          name: fullName.trim(),
+          dharmaTitle: dharmaTitle.trim(),
+          templeName: temple.trim(),
+          email: email.trim(),
+          password,
+          confirmPassword,
         })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) {
-          setMessage({ text: data.error || 'สมัครสมาชิกไม่สำเร็จ', error: true })
-        } else {
-          setMessage({ text: data.message || 'สมัครสมาชิกสำเร็จ รอผู้ดูแลระบบอนุมัติ', error: false })
-          setMode('login')
-          setPassword('')
-          setConfirmPassword('')
-        }
-      } catch {
-        setMessage({ text: 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง', error: true })
+        setMessage({ text, error: false })
+        setMode('login')
+        setPassword('')
+        setConfirmPassword('')
+      } catch (err) {
+        setMessage({
+          text: err instanceof ApiError ? err.message : 'สมัครสมาชิกไม่สำเร็จ',
+          error: true,
+        })
       } finally {
         setSubmitting(false)
       }
@@ -84,7 +82,7 @@ export default function Login() {
       setMessage({ text: result.error, error: true })
       return
     }
-    navigate('/')
+    navigate(next || '/')
   }
 
   return (

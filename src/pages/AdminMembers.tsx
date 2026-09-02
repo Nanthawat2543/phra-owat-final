@@ -1,16 +1,9 @@
 import { useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { apiListMembers, apiSetMemberStatus, type AdminMember } from '../lib/api'
 
-interface Member {
-  email: string
-  name: string
-  dharmaTitle: string
-  temple: string
-  status: 'pending' | 'active' | 'rejected' | 'blocked'
-  createdAt: string | null
-  reviewedAt: string | null
-}
+type Member = AdminMember
 
 const STATUS_META: Record<Member['status'], { label: string; color: string; bg: string }> = {
   pending: { label: 'รออนุมัติ', color: '#f0c878', bg: 'rgba(233,184,94,0.14)' },
@@ -47,9 +40,8 @@ export default function AdminMembers() {
   const [busy, setBusy] = useState<string | null>(null)
 
   const load = useCallback(() => {
-    fetch('/api/admin/members', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
-      .then((d) => setMembers(d.members))
+    apiListMembers()
+      .then(setMembers)
       .catch(() => setError('โหลดรายชื่อไม่สำเร็จ'))
   }, [])
 
@@ -57,15 +49,21 @@ export default function AdminMembers() {
     if (user?.role === 'admin') load()
   }, [user, load])
 
-  const act = async (email: string, action: 'approve' | 'reject' | 'block' | 'pending') => {
-    setBusy(email + action)
+  // ปุ่มบนหน้าจอใช้คำว่า approve/reject/block — API ใหม่รับเป็นชื่อสถานะตรงๆ
+  const STATUS_OF = {
+    approve: 'active',
+    reject: 'rejected',
+    block: 'blocked',
+    pending: 'pending',
+  } as const
+
+  const act = async (id: string, action: keyof typeof STATUS_OF) => {
+    setBusy(id + action)
     try {
-      const res = await fetch('/api/admin/members', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, action }),
-      })
-      if (res.ok) load()
+      await apiSetMemberStatus(id, STATUS_OF[action])
+      load()
+    } catch {
+      setError('เปลี่ยนสถานะไม่สำเร็จ')
     } finally {
       setBusy(null)
     }
@@ -170,17 +168,17 @@ export default function AdminMembers() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {m.status !== 'active' && (
-            <button disabled={!!busy} onClick={() => act(m.email, 'approve')} style={actionBtn('linear-gradient(180deg,#3f8f4f,#2f6f3c)')}>
+            <button disabled={!!busy} onClick={() => act(m.id, 'approve')} style={actionBtn('linear-gradient(180deg,#3f8f4f,#2f6f3c)')}>
               อนุมัติ
             </button>
           )}
           {m.status === 'pending' && (
-            <button disabled={!!busy} onClick={() => act(m.email, 'reject')} style={actionBtn('rgba(150,50,40,0.7)')}>
+            <button disabled={!!busy} onClick={() => act(m.id, 'reject')} style={actionBtn('rgba(150,50,40,0.7)')}>
               ไม่อนุมัติ
             </button>
           )}
           {m.status === 'active' && (
-            <button disabled={!!busy} onClick={() => act(m.email, 'block')} style={actionBtn('rgba(120,60,30,0.7)')}>
+            <button disabled={!!busy} onClick={() => act(m.id, 'block')} style={actionBtn('rgba(120,60,30,0.7)')}>
               ระงับ
             </button>
           )}

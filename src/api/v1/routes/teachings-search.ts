@@ -4,7 +4,9 @@
 // deity / temple / category / year   ฟิลเตอร์
 // page      หน้าที่ต้องการ (เริ่มที่ 1)
 
-import { allowMethods, handler, intParam, param, sendOk } from '../../../shared/http.js'
+import { allowMethods, cookie, handler, intParam, param, sendOk } from '../../../shared/http.js'
+import { authService } from '../../../services/AuthService.js'
+import { SESSION_COOKIE } from '../../../shared/config.js'
 import { searchService } from '../../../services/SearchService.js'
 import type { SearchFilters } from '../../../domain/search.js'
 
@@ -17,7 +19,8 @@ export default handler(async (req, res) => {
     if (value) filters[name] = value
   }
 
-  const result = await searchService.search(param(req, 'q'), filters, intParam(req, 'page', 1))
+  const actor = authService.verifySession(cookie(req, SESSION_COOKIE))
+  const result = await searchService.search(actor, param(req, 'q'), filters, intParam(req, 'page', 1))
 
   sendOk(
     res,

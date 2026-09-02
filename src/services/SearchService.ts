@@ -20,6 +20,8 @@ import {
   type TeachingRepository,
   type TeachingWithPassages,
 } from '../repositories/TeachingRepository.js'
+import { AppError } from '../shared/result.js'
+import type { SessionPayload } from './AuthService.js'
 
 /** หนึ่งรายการในผลค้นหา */
 export interface SearchHit {
@@ -72,6 +74,17 @@ export interface SearchOptions {
   mergeIdenticalSnippets?: boolean
 }
 
+/**
+ * ค้นหาต้องเข้าสู่ระบบก่อน — มติของทีม
+ * (การเปิดรับพระโอวาทประจำวันและการอ่านฉบับเต็มยังเปิดให้ทุกคน)
+ *
+ * ตรวจที่ชั้น service ไม่ฝากให้ชั้น api ตรวจ เพราะถ้าลืมที่ปลายทางไหนสักที่
+ * คลังพระโอวาททั้งหมดจะหลุดออกไปทันที
+ */
+function requireMember(actor: SessionPayload | null): void {
+  if (!actor) throw new AppError('UNAUTHENTICATED', 'กรุณาเข้าสู่ระบบก่อนค้นหา')
+}
+
 export class SearchService {
   constructor(
     private readonly teachings: TeachingRepository = teachingRepository,
@@ -82,7 +95,13 @@ export class SearchService {
     return this.options.mergeIdenticalSnippets ? mergeByVisibleText(matches) : matches
   }
 
-  async search(query: string, filters: SearchFilters = {}, page = 1): Promise<SearchResult> {
+  async search(
+    actor: SessionPayload | null,
+    query: string,
+    filters: SearchFilters = {},
+    page = 1,
+  ): Promise<SearchResult> {
+    requireMember(actor)
     const raw = (query || '').trim()
     const matches = raw ? await this.matchQuery(raw) : await this.matchAll()
     const deduped = this.dedupe(matches)
@@ -107,7 +126,12 @@ export class SearchService {
   }
 
   /** ตัวเลือกฟิลเตอร์อย่างเดียว — หน้าเว็บเรียกตอนเปิดหน้าค้นหา */
-  async facets(query = '', filters: SearchFilters = {}): Promise<FacetCounts> {
+  async facets(
+    actor: SessionPayload | null,
+    query = '',
+    filters: SearchFilters = {},
+  ): Promise<FacetCounts> {
+    requireMember(actor)
     const raw = query.trim()
     const matches = raw ? await this.matchQuery(raw) : await this.matchAll()
     return aggregateFacets(this.dedupe(matches), filters)

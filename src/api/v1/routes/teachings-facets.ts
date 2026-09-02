@@ -3,7 +3,9 @@
 // แยกจากปลายทางค้นหา เพราะหน้าเว็บเรียกตอนเปิดหน้าโดยยังไม่ค้นอะไร
 // จำนวนของแต่ละมิติคิดโดยข้ามฟิลเตอร์ของมิตินั้นเอง ผู้ใช้จึงเปลี่ยนตัวเลือกได้
 
-import { allowMethods, handler, param, sendOk } from '../../../shared/http.js'
+import { allowMethods, cookie, handler, param, sendOk } from '../../../shared/http.js'
+import { authService } from '../../../services/AuthService.js'
+import { SESSION_COOKIE } from '../../../shared/config.js'
 import { searchService } from '../../../services/SearchService.js'
 import type { SearchFilters } from '../../../domain/search.js'
 
@@ -16,5 +18,6 @@ export default handler(async (req, res) => {
     if (value) filters[name] = value
   }
 
-  sendOk(res, await searchService.facets(param(req, 'q'), filters))
+  const actor = authService.verifySession(cookie(req, SESSION_COOKIE))
+  sendOk(res, await searchService.facets(actor, param(req, 'q'), filters))
 })

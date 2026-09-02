@@ -4,6 +4,7 @@ import BackgroundGlow from '../components/BackgroundGlow'
 import UserMenu from '../components/UserMenu'
 import { thaiDate, placeLabel, stripMarkdown, type Passage } from '../lib/format'
 import { useAuth } from '../lib/auth'
+import { apiDrawDaily } from '../lib/api'
 
 /** Shimmering gold title text — the original owat.fycdth.com treatment. */
 const goldTextGradient: CSSProperties = {
@@ -59,9 +60,9 @@ export default function Home() {
     if (readOpensToday() >= DAILY_LIMIT || loading) return
     setLoading(true)
     try {
-      const res = await fetch('/api/owat?random=true', { cache: 'no-store' })
-      const data: Passage = await res.json()
-      setPassage(data)
+      // โควตาวันละครั้งบังคับที่ฐานข้อมูลแล้ว เปิดซ้ำในวันเดียวกันได้ท่อนเดิม
+      const { passage: drawn } = await apiDrawDaily()
+      setPassage(drawn)
       setModalOpen(true)
       const next = readOpensToday() + 1
       try {

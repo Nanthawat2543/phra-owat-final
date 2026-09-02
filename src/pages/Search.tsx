@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { thaiDate, placeLabel, stripMarkdown, type SearchHit } from '../lib/format'
 import { useAuth } from '../lib/auth'
+import { apiSearch } from '../lib/api'
 import { scrollToTop } from '../lib/scroll'
 import UserMenu from '../components/UserMenu'
 
@@ -344,11 +345,10 @@ export default function Search() {
     if (fCategory) params.set('category', fCategory)
     if (fYear) params.set('year', fYear)
     if (fPage > 1) params.set('page', String(fPage))
-    fetch(`/api/search?${params}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d: SearchResponse) => {
-        responseCache.set(paramsKey, d)
-        if (!cancelled) setData(d)
+    apiSearch(params)
+      .then((d) => {
+        responseCache.set(paramsKey, d as SearchResponse)
+        if (!cancelled) setData(d as SearchResponse)
       })
       .catch(() => {
         if (!cancelled) setData(null)

@@ -1,12 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
+import { apiLogin, apiLogout, apiMe, ApiError, type User } from './api'
 
-export interface User {
-  email: string
-  name: string
-  role: string
-}
+export type { User }
 
-/** Session state from the httpOnly cookie (via /api/auth/me). */
+/** Session state from the httpOnly cookie (via /api/v1/auth/me). */
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [checking, setChecking] = useState(true)
@@ -14,10 +11,9 @@ export function useAuth() {
   useEffect(() => {
     let cancelled = false
     const refresh = () =>
-      fetch('/api/auth/me', { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : { user: null }))
-        .then((d) => {
-          if (!cancelled) setUser(d.user ?? null)
+      apiMe()
+        .then((u) => {
+          if (!cancelled) setUser(u)
         })
         .catch(() => {
           if (!cancelled) setUser(null)
@@ -41,7 +37,7 @@ export function useAuth() {
   }, [])
 
   const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+    await apiLogout()
     setUser(null)
   }, [])
 
@@ -50,15 +46,9 @@ export function useAuth() {
 
 export async function login(email: string, password: string): Promise<{ user?: User; error?: string }> {
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) return { error: data.error || 'เข้าสู่ระบบไม่สำเร็จ' }
-    return { user: data.user }
-  } catch {
-    return { error: 'เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง' }
+    return { user: await apiLogin(email, password) }
+  } catch (err) {
+    // ข้อความจาก API เป็นภาษาไทยที่แสดงให้ผู้ใช้อ่านได้ทันที
+    return { error: err instanceof ApiError ? err.message : 'เข้าสู่ระบบไม่สำเร็จ' }
   }
 }

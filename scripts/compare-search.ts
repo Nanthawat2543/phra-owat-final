@@ -120,12 +120,15 @@ const QUERIES = ['เมตตา', 'ปัญญา', 'กำลังใจ', 
 // (ตอนใช้งานจริง ver2 ปิดไว้ ดูเหตุผลที่ SearchOptions ใน SearchService)
 const service = new SearchService(fakeRepository, { mergeIdenticalSnippets: true })
 
+// ค้นหาต้องเข้าสู่ระบบก่อน — สคริปต์นี้ทดสอบเครื่องให้คะแนน จึงสวมผู้ใช้จำลองให้
+const TESTER = { sub: 'tester', email: 'tester@local', name: 'ทดสอบ', role: 'member' as const, exp: 2 ** 40 }
+
 let failed = 0
 
 for (const q of QUERIES) {
   const label = q || '(เปิดดูทั้งหมด)'
   const v1 = runSearch(q, {}, 1)
-  const v2 = await service.search(q, {}, 1)
+  const v2 = await service.search(TESTER, q, {}, 1)
 
   const problems: string[] = []
   if (v1.total !== v2.total) problems.push(`จำนวนผลรวม ver1=${v1.total} ver2=${v2.total}`)
