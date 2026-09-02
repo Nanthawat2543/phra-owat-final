@@ -72,7 +72,7 @@ export default function AdminMembers() {
   const shell = (children: React.ReactNode) => (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: 'var(--app-screen-h)',
         background: 'linear-gradient(180deg, #1a0a00 0%, #2d1810 30%, #1a0a00 100%)',
         fontFamily: "'Sarabun', sans-serif",
         color: '#e8d6b0',

@@ -90,7 +90,7 @@ export default function Login() {
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '100vh',
+        minHeight: 'var(--app-screen-h)',
         overflow: 'hidden',
         background:
           'radial-gradient(120% 95% at 50% 36%, #34200c 0%, #241405 36%, #160c03 64%, #0b0602 100%)',

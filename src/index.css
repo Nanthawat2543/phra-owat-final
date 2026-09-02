@@ -2,6 +2,20 @@
 * {
   box-sizing: border-box;
 }
+
+:root {
+  /* ความสูงหนึ่งหน้าจอ
+     บนมือถือ 100vh สูงกว่าพื้นที่ที่มองเห็นจริง เพราะไม่ได้หักแถบที่อยู่เว็บออก
+     ทำให้เนื้อหาด้านล่างโดนบัง และหน้ากระตุกตอนเลื่อนขึ้นลง
+     100dvh หักให้แล้ว — เบราว์เซอร์รุ่นเก่าที่ยังไม่รองรับจะใช้ 100vh ตามเดิม */
+  --app-screen-h: 100vh;
+}
+@supports (height: 100dvh) {
+  :root {
+    --app-screen-h: 100dvh;
+  }
+}
+
 html,
 body {
   margin: 0;
@@ -9,12 +23,15 @@ body {
   /* พื้นหลังเข้มเสมอ — กันขอบขาวโผล่ตอนลากจอเกินขอบ (overscroll/rubber-band) */
   background: #1a0a00;
   overscroll-behavior: none;
+  /* กัน iOS ขยายขนาดตัวอักษรเองตอนหมุนจอเป็นแนวนอน */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 body {
   font-family: 'Sarabun', sans-serif;
 }
 #root {
-  min-height: 100vh;
+  min-height: var(--app-screen-h);
 }
 
 /* ---- Keyframes (ported from the design prototypes) ---- */

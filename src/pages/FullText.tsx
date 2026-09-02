@@ -83,7 +83,7 @@ export default function FullText() {
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '100vh',
+        minHeight: 'var(--app-screen-h)',
         background: pageBg,
         fontFamily: "'Sarabun', sans-serif",
         transition: 'background 0.3s',

@@ -402,7 +402,7 @@ export default function Search() {
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '100vh',
+        minHeight: 'var(--app-screen-h)',
         background: 'linear-gradient(180deg, #1a0a00 0%, #2d1810 30%, #1a0a00 100%)',
         fontFamily: "'Sarabun', sans-serif",
         display: 'flex',
