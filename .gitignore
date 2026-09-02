@@ -16,3 +16,6 @@ migration-report.json
 
 # ไฟล์ชั่วคราวจากสคริปต์เทียบผลค้นหา
 scripts/.compare-search.mjs
+
+# รหัสผ่านฐานข้อมูล — ห้าม commit
+.supabase-db-passwords.env
