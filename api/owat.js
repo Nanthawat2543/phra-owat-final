@@ -1,9 +1,14 @@
 // GET /api/owat?random=true[&exclude=id,id]  → a random oracle passage
 // GET /api/owat?random=true&question=...      → a question-guided passage
 // GET /api/owat?id=<teachingId>               → one full teaching (for /full)
+//
+// ⚠️ สาธารณะเฉพาะ "สุ่ม" เท่านั้น — สุ่มคืนแค่ท่อนสั้นพอให้อ่านชี้แนะได้
+//    ส่วน ?id= คืนพระโอวาททั้งฉบับ ต้องล็อกอินก่อน (เหมือน /api/search)
+//    ไม่งั้นคนที่ยังไม่ล็อกอินกดจากหน้าสุ่มเข้าไปอ่านฉบับเต็มได้เฉยๆ
 
 import { drawRandom, drawForQuestion } from './_lib/oracle.js'
 import { getTeachingById } from './_lib/data.js'
+import { sessionFromRequest } from './_lib/auth.js'
 
 function passageResponse(p) {
   return {
@@ -26,12 +31,20 @@ export default function handler(req, res) {
 
   const id = searchParams.get('id')
   if (id) {
+    if (!sessionFromRequest(req)) {
+      res.setHeader('Cache-Control', 'private, no-store')
+      res.status(401).json({
+        error: 'กรุณาเข้าสู่ระบบก่อนอ่านฉบับเต็ม',
+        code: 'unauthenticated',
+      })
+      return
+    }
     const t = getTeachingById(id)
     if (!t) {
       res.status(404).json({ error: 'not found' })
       return
     }
-    res.setHeader('Cache-Control', 'public, max-age=3600')
+    res.setHeader('Cache-Control', 'private, no-store')
     res.status(200).json({
       id: t.id,
       content_th: t.content_th,

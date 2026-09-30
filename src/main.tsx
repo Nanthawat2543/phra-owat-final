@@ -20,7 +20,15 @@ const router = createHashRouter([
       </RequireLogin>
     ),
   },
-  { path: '/full', element: <FullText /> },
+  // อ่านฉบับเต็มก็ต้องล็อกอิน — หน้าสุ่มโชว์แค่ท่อนสั้น
+  {
+    path: '/full',
+    element: (
+      <RequireLogin>
+        <FullText />
+      </RequireLogin>
+    ),
+  },
   { path: '/login', element: <Login /> },
   { path: '/admin', element: <AdminMembers /> },
 ])

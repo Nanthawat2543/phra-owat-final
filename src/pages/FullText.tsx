@@ -34,8 +34,18 @@ export default function FullText() {
     setLoading(true)
     setError(false)
     fetch(`/api/owat?id=${encodeURIComponent(id)}`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data: Teaching) => setTeaching(data))
+      .then((r) => {
+        // session หมดอายุระหว่างอ่าน → พาไปล็อกอินแล้วกลับมาฉบับเดิม
+        if (r.status === 401) {
+          const back = `/full?id=${encodeURIComponent(id)}`
+          navigate(`/login?next=${encodeURIComponent(back)}`, { replace: true })
+          return null
+        }
+        return r.ok ? r.json() : Promise.reject()
+      })
+      .then((data: Teaching | null) => {
+        if (data) setTeaching(data)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [id])
