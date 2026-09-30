@@ -20,13 +20,31 @@ const labelStyle: CSSProperties = {
   color: '#d9bd8a',
 }
 
+// ── ด่านกัน open-redirect ──
+// ?next= มาจาก URL ที่ใครก็แก้ได้ ถ้าเชื่อตรงๆ จะถูกหลอกส่งผู้ใช้ไปเว็บปลอม
+// ที่หน้าตาเหมือนหน้าล็อกอินของเรา แล้วขโมยรหัสผ่าน
+//
+// เช็คว่า "ขึ้นต้นด้วย / และไม่ใช่ //" อย่างเดียวไม่พอ เพราะ react-router 6
+// มีบั๊ก open redirect ผ่าน backslash (GHSA-wrjc-x8rr-h8h6) — ค่าอย่าง
+// "/\\evil.com" ผ่านด่านนั้นได้ แล้วเบราว์เซอร์ตีความ \\ เป็น /
+//
+// จึงใช้บัญชีขาวแทน: รับเฉพาะหน้าที่ RequireLogin ครอบไว้จริงเท่านั้น
+// อะไรที่ไม่ตรงเป๊ะ ส่งกลับหน้าแรก
+const ALLOWED_NEXT = ['/search', '/full']
+
+function safeNext(raw: string | null): string {
+  if (!raw) return '/'
+  // ตัดทิ้งทันทีถ้ามี backslash หรืออักขระควบคุม
+  if (/[\\\u0000-\u001f]/.test(raw)) return '/'
+  const path = raw.split('?')[0].split('#')[0]
+  return ALLOWED_NEXT.includes(path) ? raw : '/'
+}
+
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   // หน้าที่ผู้ใช้ตั้งใจจะไปก่อนถูกเด้งมาล็อกอิน (ใส่โดย RequireLogin)
-  // รับเฉพาะ path ภายในเว็บ กัน open-redirect ไปโดเมนอื่น
-  const rawNext = searchParams.get('next') || ''
-  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
+  const next = safeNext(searchParams.get('next'))
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [showPw, setShowPw] = useState(false)
   const [email, setEmail] = useState('')
