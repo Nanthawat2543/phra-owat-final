@@ -4,7 +4,19 @@
 
 import { createHash, randomUUID } from 'node:crypto'
 import { put, list } from '@vercel/blob'
-import { readJsonBody } from '../_lib/auth.js'
+import {
+  readJsonBody,
+  hashPassword,
+  wrongOrigin,
+  tooManyAttempts,
+  recordFailure,
+  clientKey,
+} from '../_lib/auth.js'
+
+// ตอบข้อความเดียวกันเสมอ ไม่ว่าอีเมลนี้จะเคยสมัครไว้แล้วหรือยัง
+// ถ้าตอบต่างกัน คนนอกจะยิงทีละอีเมลเพื่อไล่ดูว่าใครเป็นสมาชิกบ้างได้
+const SAME_ANSWER =
+  'รับใบสมัครแล้ว หากอีเมลนี้ยังไม่เคยสมัครไว้ ผู้ดูแลระบบจะตรวจสอบและอนุมัติให้ กรุณารอการติดต่อกลับ'
 
 const REQUIRED = [
   ['name', 'ชื่อ-นามสกุล'],
@@ -15,10 +27,24 @@ const REQUIRED = [
 ]
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store')
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
     return
   }
+  if (wrongOrigin(req)) {
+    res.status(403).json({ error: 'คำขอไม่ถูกต้อง' })
+    return
+  }
+  // กันยิงใบสมัครรัวๆ ทั้งเพื่อสแปมและเพื่อไล่เช็ครายชื่อสมาชิก
+  const ip = clientKey(req)
+  if (tooManyAttempts(`reg:${ip}`)) {
+    res.status(429).json({ error: 'ส่งใบสมัครถี่เกินไป กรุณารอสักครู่แล้วลองใหม่' })
+    return
+  }
+  recordFailure(`reg:${ip}`)
+
   let body
   try {
     body = await readJsonBody(req)
@@ -52,7 +78,8 @@ export default async function handler(req, res) {
     const emailKey = createHash('sha256').update(email).digest('hex').slice(0, 24)
     const { blobs } = await list({ prefix: `members/${emailKey}-` })
     if (blobs.length > 0) {
-      res.status(409).json({ error: 'อีเมลนี้สมัครไว้แล้ว กรุณารอการอนุมัติหรือติดต่อผู้ดูแล' })
+      // ตอบเหมือนกรณีสมัครสำเร็จทุกประการ — ไม่บอกว่ามีอีเมลนี้อยู่แล้ว
+      res.status(200).json({ ok: true, message: SAME_ANSWER })
       return
     }
 
@@ -62,7 +89,7 @@ export default async function handler(req, res) {
       dharmaTitle: String(body.dharmaTitle).trim(),
       temple: String(body.temple).trim(),
       email,
-      passwordSha256: createHash('sha256').update(String(body.password), 'utf8').digest('hex'),
+      passwordHash: await hashPassword(String(body.password)), // scrypt + เกลือสุ่ม
       status: 'pending', // รอผู้ดูแลระบบอนุมัติก่อนจึงเข้าสู่ระบบได้
       createdAt: new Date().toISOString(),
     }
@@ -73,8 +100,7 @@ export default async function handler(req, res) {
       cacheControlMaxAge: 0, // record แก้ไขได้ — ไม่ให้ CDN แคช
     })
 
-    res.setHeader('Cache-Control', 'no-store')
-    res.status(200).json({ ok: true, message: 'สมัครสมาชิกสำเร็จ รอผู้ดูแลระบบอนุมัติก่อนเข้าใช้งาน' })
+    res.status(200).json({ ok: true, message: SAME_ANSWER })
   } catch (err) {
     console.error('register failed:', err)
     res.status(500).json({ error: 'บันทึกใบสมัครไม่สำเร็จ ลองใหม่อีกครั้ง' })

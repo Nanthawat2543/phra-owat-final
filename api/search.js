@@ -9,14 +9,16 @@
 //    (เดิม endpoint นี้เปิดโล่ง ใครก็ยิงได้ ทั้งที่หน้าเว็บมีปุ่มเข้าสู่ระบบอยู่)
 
 import { runSearch } from './_lib/search.js'
-import { sessionFromRequest } from './_lib/auth.js'
+import { activeSessionFromRequest } from './_lib/auth.js'
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // ผลลัพธ์ขึ้นกับ cookie แล้ว — ห้ามให้ CDN แคชแบบ public
   // ไม่งั้นผล 200 ของสมาชิกอาจถูกเสิร์ฟต่อให้คนที่ยังไม่ล็อกอิน
   res.setHeader('Cache-Control', 'private, no-store')
 
-  const session = sessionFromRequest(req)
+  // ตรวจสถานะจริงทุกครั้ง ไม่ใช่แค่ token ยังไม่หมดอายุ
+  // → แอดมินระงับสมาชิกแล้ว คนนั้นค้นหาต่อไม่ได้ภายใน 1 นาที
+  const session = await activeSessionFromRequest(req)
   if (!session) {
     res.status(401).json({
       error: 'กรุณาเข้าสู่ระบบก่อนค้นหา',

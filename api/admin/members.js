@@ -1,7 +1,7 @@
 // จัดการสมาชิก (เฉพาะแอดมิน)
 //   GET  /api/admin/members            → รายชื่อสมาชิกทั้งหมด
 //   POST /api/admin/members {email,action:approve|reject|block|pending}
-import { sessionFromRequest, listMembers, setMemberStatus, readJsonBody } from '../_lib/auth.js'
+import { activeSessionFromRequest, listMembers, setMemberStatus, readJsonBody, wrongOrigin } from '../_lib/auth.js'
 
 const ACTION_STATUS = {
   approve: 'active',
@@ -11,13 +11,19 @@ const ACTION_STATUS = {
 }
 
 export default async function handler(req, res) {
-  // ต้องเป็นแอดมินเท่านั้น
-  const session = sessionFromRequest(req)
+  res.setHeader('Cache-Control', 'no-store')
+
+  if (wrongOrigin(req)) {
+    res.status(403).json({ error: 'คำขอไม่ถูกต้อง' })
+    return
+  }
+  // ต้องเป็นแอดมินเท่านั้น — และเทียบกับอีเมลแอดมินปัจจุบันด้วย
+  // ถ้าเปลี่ยน ADMIN_EMAIL แล้ว token ของแอดมินคนเก่าจะใช้ไม่ได้ทันที
+  const session = await activeSessionFromRequest(req)
   if (!session || session.role !== 'admin') {
     res.status(403).json({ error: 'เฉพาะผู้ดูแลระบบ' })
     return
   }
-  res.setHeader('Cache-Control', 'no-store')
 
   if (req.method === 'GET') {
     try {

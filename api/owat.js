@@ -8,7 +8,7 @@
 
 import { drawRandom, drawForQuestion } from './_lib/oracle.js'
 import { getTeachingById } from './_lib/data.js'
-import { sessionFromRequest } from './_lib/auth.js'
+import { activeSessionFromRequest } from './_lib/auth.js'
 
 function passageResponse(p) {
   return {
@@ -26,12 +26,12 @@ function passageResponse(p) {
   }
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { searchParams } = new URL(req.url, 'http://localhost')
 
   const id = searchParams.get('id')
   if (id) {
-    if (!sessionFromRequest(req)) {
+    if (!(await activeSessionFromRequest(req))) {
       res.setHeader('Cache-Control', 'private, no-store')
       res.status(401).json({
         error: 'กรุณาเข้าสู่ระบบก่อนอ่านฉบับเต็ม',
