@@ -12,3 +12,7 @@ preview-dist
 .vercel
 .env
 .env*.local
+
+# ไฟล์รหัสผ่าน/คีย์ — ห้ามเข้า git
+.supabase-db-passwords.env
+*.env

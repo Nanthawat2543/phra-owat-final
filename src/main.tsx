@@ -7,10 +7,19 @@ import Search from './pages/Search'
 import FullText from './pages/FullText'
 import Login from './pages/Login'
 import AdminMembers from './pages/AdminMembers'
+import RequireLogin from './components/RequireLogin'
 
 const router = createHashRouter([
   { path: '/', element: <Home /> },
-  { path: '/search', element: <Search /> },
+  // ค้นหาต้องล็อกอินก่อน (สุ่มหน้าแรกยังเปิดสาธารณะ)
+  {
+    path: '/search',
+    element: (
+      <RequireLogin>
+        <Search />
+      </RequireLogin>
+    ),
+  },
   { path: '/full', element: <FullText /> },
   { path: '/login', element: <Login /> },
   { path: '/admin', element: <AdminMembers /> },

@@ -345,8 +345,18 @@ export default function Search() {
     if (fYear) params.set('year', fYear)
     if (fPage > 1) params.set('page', String(fPage))
     fetch(`/api/search?${params}`, { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d: SearchResponse) => {
+      .then(async (r) => {
+        // session หมดอายุระหว่างใช้งาน → พากลับไปล็อกอิน แล้วค่อยกลับมาที่ผลค้นหาเดิม
+        // (ห้าม cache ผล 401 ไว้ ไม่งั้นล็อกอินกลับมาแล้วยังเห็น "ไม่พบผล")
+        if (r.status === 401) {
+          const back = '/search' + (params.toString() ? `?${params}` : '')
+          navigate(`/login?next=${encodeURIComponent(back)}`, { replace: true })
+          return null
+        }
+        return (await r.json()) as SearchResponse
+      })
+      .then((d: SearchResponse | null) => {
+        if (!d) return
         responseCache.set(paramsKey, d)
         if (!cancelled) setData(d)
       })

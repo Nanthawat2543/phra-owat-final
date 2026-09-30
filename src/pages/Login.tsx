@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '../lib/auth'
 
 const fieldStyle: CSSProperties = {
@@ -22,6 +22,11 @@ const labelStyle: CSSProperties = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  // หน้าที่ผู้ใช้ตั้งใจจะไปก่อนถูกเด้งมาล็อกอิน (ใส่โดย RequireLogin)
+  // รับเฉพาะ path ภายในเว็บ กัน open-redirect ไปโดเมนอื่น
+  const rawNext = searchParams.get('next') || ''
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [showPw, setShowPw] = useState(false)
   const [email, setEmail] = useState('')
@@ -84,7 +89,7 @@ export default function Login() {
       setMessage({ text: result.error, error: true })
       return
     }
-    navigate('/')
+    navigate(next, { replace: true })
   }
 
   return (
